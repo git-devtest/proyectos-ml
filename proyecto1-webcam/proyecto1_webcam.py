@@ -70,6 +70,12 @@ while True:
         0.5, (200, 200, 200), 1
     )
 
+    # Reto D: Dibujar un rectángulo en el centro de la imagen
+    centro_x = frame.shape[1] // 2  # Obtiene el ancho de la imagen y lo divide por 2
+    centro_y = frame.shape[0] // 2  # Obtiene el alto de la imagen y lo divide por 2
+    # offset de 50 para un cuadrado de 100x100 centrado real
+    cv2.rectangle(resultado, (centro_x - 50, centro_y - 50), (centro_x + 50, centro_y + 50), (0, 255, 0), 2)
+
     # ── 6. Mostrar ventana ────────────────────────────────────────
     cv2.imshow("Proyecto 1 - Webcam", resultado)
 

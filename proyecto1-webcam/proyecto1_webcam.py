@@ -45,6 +45,22 @@ while True:
 
     elif filtro_activo == "invertido":
         resultado = cv2.bitwise_not(frame)
+    
+    # Reto E: Filtro "pixelado" (pixelate)
+    # Agregar como nuevo elif en el bloque de filtros:
+    elif filtro_activo == "pixelado":
+        alto, ancho = frame.shape[:2]
+        factor = 12  # tamaño de cada "pixel" (mayor = más cuadrados)
+
+        # 1. Reducir a tamaño pequeño
+        pequeño = cv2.resize(frame,
+        (ancho // factor, alto // factor),
+        interpolation=cv2.INTER_LINEAR)
+
+        # 2. Escalar de vuelta al tamaño original
+        resultado = cv2.resize(pequeño,
+            (ancho, alto),
+            interpolation=cv2.INTER_NEAREST)  # clave: sin interpolación
 
     else:  # "original"
         resultado = frame
@@ -89,6 +105,7 @@ while True:
     elif tecla in (ord('4'), 180):  filtro_activo = "bordes"
     elif tecla in (ord('5'), 181):  filtro_activo = "sepia"
     elif tecla in (ord('6'), 182):  filtro_activo = "invertido"
+    elif tecla in (ord('7'), 183):  filtro_activo = "pixelado"
 
     # Reto A: Guardar imagen
     elif tecla == ord('s'): 

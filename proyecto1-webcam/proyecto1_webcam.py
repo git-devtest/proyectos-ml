@@ -15,6 +15,7 @@ filtro_activo = "original"
 while True:
     # Leer un frame de la cámara
     ret, frame = cap.read()
+
     if not ret:
         print("Error al leer frame")
         break
@@ -46,7 +47,7 @@ while True:
     # ── 5. Mostrar información en pantalla ────────────────────────
     cv2.putText(
         resultado,
-        f"Filtro: {filtro_activo}  |  1-6 cambiar  |  Q salir",
+        f"Filtro: {filtro_activo}  |  1-7 cambiar  |  Q salir",
         (10, 30),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.6,

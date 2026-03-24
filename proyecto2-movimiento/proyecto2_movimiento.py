@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 from datetime import datetime
 
 # ── 1. Abrir cámara ───────────────────────────────────────────────
@@ -173,7 +174,8 @@ while True:
         print("Fondo reseteado")
 
     elif tecla in (ord('s'), ord('S')):
-        nombre = f"movimiento_{datetime.now():%Y%m%d_%H%M%S}.png"
+        os.makedirs("proyecto2-movimiento/saves", exist_ok=True)
+        nombre = f"proyecto2-movimiento/saves/movimiento_{datetime.now():%Y%m%d_%H%M%S}.png"
         cv2.imwrite(nombre, visualizacion)
         print(f"Captura guardada: {nombre}")
 

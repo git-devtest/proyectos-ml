@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from datetime import datetime
+import os
 
 # ── 1. Abrir cámara (índice 0 = primera cámara USB) ──────────────
 cap = cv2.VideoCapture(0)
@@ -68,6 +70,13 @@ while True:
     elif tecla in (ord('4'), 180):  filtro_activo = "bordes"
     elif tecla in (ord('5'), 181):  filtro_activo = "sepia"
     elif tecla in (ord('6'), 182):  filtro_activo = "invertido"
+
+    # Reto 1: Guardar imagen
+    elif tecla == ord('s'): 
+        os.makedirs("proyecto1-webcam/saves", exist_ok=True)
+        nombre = f"proyecto1-webcam/saves/captura_{datetime.now():%Y%m%d_%H%M%S}.png"
+        cv2.imwrite(nombre, resultado)
+        print(f"Guardada: {nombre}")
 
 # ── 8. Liberar recursos ───────────────────────────────────────────
 cap.release()

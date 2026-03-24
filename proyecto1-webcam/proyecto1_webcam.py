@@ -57,6 +57,16 @@ while True:
         2
     )
 
+    # Reto B: Mostrar dimensiones de la imagen en pantalla
+    alto, ancho, canales = frame.shape
+    info_text = f"Dimensiones: {ancho}x{alto} | Canales: {canales}"
+    cv2.putText(
+        resultado, info_text,
+        (10, alto - 10),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5, (200, 200, 200), 1
+    )
+
     # ── 6. Mostrar ventana ────────────────────────────────────────
     cv2.imshow("Proyecto 1 - Webcam", resultado)
 
@@ -71,7 +81,7 @@ while True:
     elif tecla in (ord('5'), 181):  filtro_activo = "sepia"
     elif tecla in (ord('6'), 182):  filtro_activo = "invertido"
 
-    # Reto 1: Guardar imagen
+    # Reto A: Guardar imagen
     elif tecla == ord('s'): 
         os.makedirs("proyecto1-webcam/saves", exist_ok=True)
         nombre = f"proyecto1-webcam/saves/captura_{datetime.now():%Y%m%d_%H%M%S}.png"

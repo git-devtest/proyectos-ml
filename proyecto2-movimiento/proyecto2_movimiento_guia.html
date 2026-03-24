@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto 2 — Detector de movimiento | Guía Interactiva</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0e1117; --bg2:#161b22; --bg3:#1c2128;
+    --border:#30363d; --border2:#484f58;
+    --text:#e6edf3; --text2:#8b949e; --text3:#6e7681;
+    --green:#3fb950; --blue:#58a6ff; --orange:#ffa657;
+    --purple:#d2a8ff; --red:#f87171; --yellow:#e3b341;
+    --code-bg:#0d1117;
+    --info-bg:rgba(88,166,255,.07); --info-bd:rgba(88,166,255,.25);
+    --warn-bg:rgba(255,166,87,.07); --warn-bd:rgba(255,166,87,.25);
+    --ok-bg:rgba(63,185,80,.07);    --ok-bd:rgba(63,185,80,.25);
+    --danger-bg:rgba(248,113,113,.07); --danger-bd:rgba(248,113,113,.25);
+  }
+  body { font-family:'Sora',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.6; }
+
+  /* NAV */
+  .topnav { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 2rem; display:flex; align-items:center; gap:12px; height:52px; position:sticky; top:0; z-index:100; }
+  .logo { display:flex; align-items:center; gap:8px; font-weight:600; font-size:14px; color:var(--text); text-decoration:none; }
+  .logo-icon { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,#388bfd,#3fb950); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .sep { color:var(--border2); }
+  .bc { font-size:13px; color:var(--text2); }
+  .bc span { color:var(--text); font-weight:500; }
+  .spacer { flex:1; }
+  .nav-badge { background:rgba(63,185,80,.12); color:var(--green); font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; border:1px solid rgba(63,185,80,.2); }
+
+  /* LAYOUT */
+  .container { max-width:920px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+
+  /* HERO */
+  .hero { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:2rem; margin-bottom:2rem; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#388bfd,#3fb950,#ffa657,#f87171); }
+  .hero h1 { font-size:22px; font-weight:700; margin-bottom:8px; line-height:1.3; }
+  .hero p  { font-size:14px; color:var(--text2); line-height:1.7; max-width:700px; }
+  .badge-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .badge { display:inline-flex; align-items:center; font-size:12px; font-weight:500; padding:4px 12px; border-radius:20px; border:1px solid transparent; }
+  .b-green  { background:rgba(63,185,80,.12);  color:var(--green);  border-color:rgba(63,185,80,.2); }
+  .b-blue   { background:rgba(88,166,255,.12); color:var(--blue);   border-color:rgba(88,166,255,.2); }
+  .b-orange { background:rgba(255,166,87,.12); color:var(--orange); border-color:rgba(255,166,87,.2); }
+  .b-purple { background:rgba(210,168,255,.12);color:var(--purple); border-color:rgba(210,168,255,.2); }
+  .b-red    { background:rgba(248,113,113,.12);color:var(--red);    border-color:rgba(248,113,113,.2); }
+
+  /* PROGRESS */
+  .progress-section { margin-bottom:2rem; }
+  .progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--text2); margin-bottom:6px; }
+  .progress-track { height:4px; background:var(--bg3); border-radius:2px; border:1px solid var(--border); }
+  .progress-fill  { height:100%; background:linear-gradient(90deg,#388bfd,#3fb950); border-radius:2px; transition:width .4s ease; }
+
+  /* TABS */
+  .tab-bar { display:flex; overflow-x:auto; background:var(--bg2); border-radius:12px 12px 0 0; border:1px solid var(--border); }
+  .tab-btn { padding:12px 20px; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; white-space:nowrap; transition:color .15s,border-color .15s; font-family:'Sora',sans-serif; }
+  .tab-btn:hover { color:var(--text); }
+  .tab-btn.active { color:var(--blue); border-bottom:2px solid var(--blue); }
+  .tab-content { background:var(--bg2); border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; padding:1.75rem; margin-bottom:2rem; }
+  .panel { display:none; animation:fadein .2s ease; }
+  .panel.active { display:block; }
+  @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+  /* TYPOGRAPHY */
+  .section-label { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px; margin-top:4px; }
+
+  /* CARDS */
+  .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  @media(max-width:600px){ .card-grid { grid-template-columns:1fr; } }
+  .card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px; }
+  .card h4 { font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .card p  { font-size:12px; color:var(--text2); line-height:1.7; }
+  .card code { font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--code-bg); color:var(--orange); padding:1px 5px; border-radius:4px; border:1px solid var(--border); }
+  .card.accent-green { border-color:rgba(63,185,80,.3); }
+  .card.accent-blue  { border-color:rgba(88,166,255,.3); }
+  .card.accent-orange{ border-color:rgba(255,166,87,.3); }
+
+  /* CODE */
+  .code-header { display:flex; align-items:center; justify-content:space-between; background:#161b22; border:1px solid var(--border); border-radius:10px 10px 0 0; padding:8px 14px; }
+  .code-header .fn { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text2); }
+  .code-header .lt { font-size:11px; color:var(--text3); background:var(--bg3); padding:2px 8px; border-radius:4px; }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-top:none; border-radius:0 0 10px 10px; padding:18px; overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.75; color:#e6edf3; margin-bottom:16px; }
+  .kw{color:#ff7b72} .fn2{color:#d2a8ff} .cm{color:#8b949e;font-style:italic} .st{color:#a5d6ff} .nu{color:#79c0ff} .op{color:#58a6ff} .hl{color:#ffa657;font-weight:500}
+
+  /* BOXES */
+  .info-box   { background:var(--info-bg);   border:1px solid var(--info-bd);   border-radius:10px; padding:13px 16px; margin-bottom:14px; font-size:13px; color:var(--text2); line-height:1.7; }
+  .warn-box   { background:var(--warn-bg);   border:1px solid var(--warn-bd);   border-radius:10px; padding:13px 16px; margin-bottom:14px; font-size:13px; color:var(--text2); line-height:1.7; }
+  .ok-box     { background:var(--ok-bg);     border:1px solid var(--ok-bd);     border-radius:10px; padding:13px 16px; margin-bottom:14px; font-size:13px; color:var(--text2); line-height:1.7; }
+  .danger-box { background:var(--danger-bg); border:1px solid var(--danger-bd); border-radius:10px; padding:13px 16px; margin-bottom:14px; font-size:13px; color:var(--text2); line-height:1.7; }
+  .info-box strong   { color:var(--blue);   font-weight:600; }
+  .warn-box strong   { color:var(--orange); font-weight:600; }
+  .ok-box strong     { color:var(--green);  font-weight:600; }
+  .danger-box strong { color:var(--red);    font-weight:600; }
+  .info-box code, .warn-box code, .ok-box code, .danger-box code { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--orange); background:rgba(0,0,0,.3); padding:1px 5px; border-radius:4px; }
+
+  /* COPY BTN */
+  .copy-btn { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text2); padding:5px 12px; border:1px solid var(--border); border-radius:6px; cursor:pointer; background:none; font-family:'Sora',sans-serif; transition:background .15s,color .15s; float:right; margin-bottom:8px; }
+  .copy-btn:hover { background:var(--bg3); color:var(--text); }
+  .copy-btn.copied { color:var(--green); border-color:rgba(63,185,80,.3); }
+
+  /* STEPS */
+  .step { display:flex; gap:14px; margin-bottom:18px; align-items:flex-start; }
+  .step-num { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--bg3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--blue); margin-top:2px; font-family:'JetBrains Mono',monospace; }
+  .step-num.g { color:var(--green); }
+  .step-content h4 { font-size:14px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .step-content p  { font-size:13px; color:var(--text2); line-height:1.7; }
+  .step-content code { font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--orange); background:var(--code-bg); padding:1px 6px; border-radius:4px; border:1px solid var(--border); }
+
+  /* PIPELINE */
+  .pipeline { display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin:14px 0; }
+  .pipe-step { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:7px 12px; font-size:12px; font-family:'JetBrains Mono',monospace; color:var(--text2); white-space:nowrap; }
+  .pipe-step.active { border-color:rgba(88,166,255,.4); color:var(--blue); }
+  .pipe-step.key    { border-color:rgba(63,185,80,.4);  color:var(--green); }
+  .pipe-arrow { color:var(--text3); font-size:14px; }
+
+  /* METHOD TABS */
+  .method-tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .method-btn { padding:8px 18px; font-size:13px; font-weight:500; border:1px solid var(--border); border-radius:8px; cursor:pointer; background:var(--bg3); color:var(--text2); font-family:'Sora',sans-serif; transition:all .15s; }
+  .method-btn:hover { border-color:var(--border2); color:var(--text); }
+  .method-btn.active { background:rgba(88,166,255,.1); border-color:rgba(88,166,255,.4); color:var(--blue); }
+
+  /* COMPARISON TABLE */
+  .cmp-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:16px; }
+  .cmp-table th { text-align:left; padding:9px 12px; color:var(--text3); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); }
+  .cmp-table td { padding:9px 12px; color:var(--text2); border-bottom:1px solid var(--border); line-height:1.6; }
+  .cmp-table td:first-child { color:var(--text); font-weight:500; }
+  .cmp-table code { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--orange); background:rgba(0,0,0,.3); padding:1px 5px; border-radius:4px; }
+
+  /* RETOS */
+  .reto-btn { font-size:13px; padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:var(--bg3); cursor:pointer; color:var(--text2); font-family:'Sora',sans-serif; transition:all .15s; margin:4px; }
+  .reto-btn:hover { background:var(--bg2); color:var(--text); border-color:var(--border2); }
+  .solution-box { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:14px; animation:fadein .2s ease; }
+  .solution-box h4 { font-size:13px; font-weight:600; color:var(--green); margin-bottom:10px; }
+  .solution-box pre { margin:0; border-radius:8px; font-size:12px; padding:14px; border:1px solid var(--border); border-top:1px solid var(--border); }
+
+  /* INTERACTIVE DEMO */
+  .demo-area { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px; }
+  .demo-canvas { width:100%; height:120px; border-radius:8px; border:1px solid var(--border); background:var(--code-bg); display:block; margin-bottom:10px; }
+  .demo-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .demo-label { font-size:12px; color:var(--text2); }
+  .demo-slider { flex:1; min-width:100px; accent-color:var(--blue); }
+
+  /* TABLE */
+  .data-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .data-table th { text-align:left; padding:7px 10px; color:var(--text3); font-weight:600; border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+  .data-table td { padding:7px 10px; color:var(--text2); border-bottom:1px solid var(--border); }
+  .data-table td:first-child { font-family:'JetBrains Mono',monospace; color:var(--orange); font-size:11px; }
+  .data-table code { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--green); }
+
+  /* FOOTER */
+  .footer { text-align:center; padding:2rem 0; font-size:12px; color:var(--text3); border-top:1px solid var(--border); margin-top:2rem; }
+  .footer a { color:var(--blue); text-decoration:none; }
+  .nav-links { display:flex; justify-content:space-between; margin-bottom:2rem; }
+  .nav-link { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text2); padding:8px 14px; border:1px solid var(--border); border-radius:8px; text-decoration:none; background:var(--bg2); transition:all .15s; }
+  .nav-link:hover { color:var(--text); border-color:var(--border2); }
+
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg2); }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="logo" href="#">
+    <span class="logo-icon">🎥</span>
+    ML con Webcam
+  </a>
+  <span class="sep">/</span>
+  <span class="bc"><span>Proyecto 2</span> — Detector de movimiento</span>
+  <div class="spacer"></div>
+  <span class="nav-badge">⭐⭐ Básico+</span>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Proyecto 2 — Detector de movimiento en tiempo real</h1>
+    <p>Detecta zonas en movimiento comparando frames consecutivos. Implementa dos métodos clásicos de sustracción de fondo: diferencia absoluta (AbsDiff) y modelo gaussiano adaptativo (MOG2).</p>
+    <div class="badge-row">
+      <span class="badge b-green">⭐⭐ Básico+</span>
+      <span class="badge b-blue">OpenCV 4.5.4 · apt</span>
+      <span class="badge b-orange">NumPy 1.26.4</span>
+      <span class="badge b-purple">Python 3.10</span>
+      <span class="badge b-blue">Construye sobre Proyecto 1</span>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-section">
+    <div class="progress-label"><span>Progreso del proyecto</span><span id="progressText">0 / 6 pasos</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- NAV LINKS -->
+  <div class="nav-links">
+    <a class="nav-link" href="../proyecto1-webcam/proyecto1_opencv_guia.html">← Proyecto 1 · Captura y filtros</a>
+    <a class="nav-link" href="#">Proyecto 3 · Detector de rostros →</a>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('conceptos',this)">🧠 Conceptos</button>
+    <button class="tab-btn" onclick="showTab('pipeline',this)">🔬 Pipeline</button>
+    <button class="tab-btn" onclick="showTab('metodos',this)">⚖️ Métodos</button>
+    <button class="tab-btn" onclick="showTab('codigo',this)">💻 Código</button>
+    <button class="tab-btn" onclick="showTab('bugs',this)">🐛 Bugs conocidos</button>
+    <button class="tab-btn" onclick="showTab('retos',this)">🚀 Retos</button>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- ═══════ CONCEPTOS ═══════ -->
+    <div class="panel active" id="panel-conceptos">
+      <p class="section-label">Idea central del proyecto</p>
+      <div class="card-grid">
+        <div class="card accent-blue">
+          <h4>🎯 Sustracción de fondo</h4>
+          <p>Técnica base de vigilancia: si el fondo es estático, cualquier diferencia entre frames es <em>movimiento</em>. El resultado es una <strong>máscara binaria</strong> donde blanco = movimiento, negro = fondo.</p>
+        </div>
+        <div class="card accent-green">
+          <h4>📐 Contornos sobre máscara</h4>
+          <p>Una vez tenemos la máscara, <code>findContours</code> extrae las regiones blancas como polígonos. Filtramos por área mínima y dibujamos <strong>bounding boxes</strong> sobre el video original.</p>
+        </div>
+        <div class="card accent-orange">
+          <h4>🔧 Morfología (dilate)</h4>
+          <p>La máscara cruda tiene huecos y ruido. <code>dilate</code> expande las zonas blancas, <strong>uniendo fragmentos</strong> del mismo objeto y rellenando huecos internos antes de buscar contornos.</p>
+        </div>
+        <div class="card">
+          <h4>🎚️ Trackbar en tiempo real</h4>
+          <p><code>createTrackbar</code> agrega un slider nativo a la ventana OpenCV. Permite <strong>ajustar la sensibilidad</strong> sin tocar el código ni reiniciar el programa.</p>
+        </div>
+      </div>
+
+      <p class="section-label">Demo interactiva — cómo funciona absdiff</p>
+      <div class="demo-area">
+        <canvas id="demoCanvas" class="demo-canvas"></canvas>
+        <div class="demo-controls">
+          <span class="demo-label">Umbral de detección:</span>
+          <input type="range" class="demo-slider" id="threshSlider" min="5" max="80" value="25" oninput="updateDemo()">
+          <span class="demo-label" id="threshVal" style="min-width:36px">25</span>
+          <span class="demo-label" style="color:var(--green)" id="demoStatus">Mueve el slider →</span>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">La franja verde muestra los píxeles donde la diferencia supera el umbral. Con umbral bajo se detectan cambios sutiles; con umbral alto solo cambios bruscos.</p>
+
+      <div class="info-box">
+        <strong>Relación con Proyecto 1:</strong> usamos exactamente el mismo loop de captura. Lo único nuevo es el procesamiento que ocurre <em>entre</em> <code>cap.read()</code> y <code>imshow()</code> — el frame pasa por el pipeline de detección antes de mostrarse.
+      </div>
+    </div>
+
+    <!-- ═══════ PIPELINE ═══════ -->
+    <div class="panel" id="panel-pipeline">
+      <p class="section-label">Pipeline completo — paso a paso</p>
+
+      <div class="pipeline">
+        <span class="pipe-step active">Frame BGR</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">cvtColor GRAY</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">GaussianBlur</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step key">absdiff / MOG2</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">threshold</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">dilate</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step key">findContours</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">filtrar área</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step active">boundingRect</span>
+      </div>
+
+      <div id="pipelineDetail"></div>
+
+      <p class="section-label" style="margin-top:20px">Haz clic en cada paso para ver el detalle</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+        <button class="reto-btn" onclick="showPipe(0)">Frame BGR</button>
+        <button class="reto-btn" onclick="showPipe(1)">GaussianBlur</button>
+        <button class="reto-btn" onclick="showPipe(2)">absdiff / threshold</button>
+        <button class="reto-btn" onclick="showPipe(3)">dilate</button>
+        <button class="reto-btn" onclick="showPipe(4)">findContours</button>
+        <button class="reto-btn" onclick="showPipe(5)">boundingRect</button>
+      </div>
+
+      <p class="section-label">¿Por qué convertir a gris antes de absdiff?</p>
+      <table class="cmp-table">
+        <thead><tr><th>Operación</th><th>Canales</th><th>Comparaciones por píxel</th><th>Velocidad</th></tr></thead>
+        <tbody>
+          <tr><td>absdiff sobre BGR</td><td>3</td><td>3 (B, G, R)</td><td>Más lenta</td></tr>
+          <tr><td>absdiff sobre GRAY</td><td>1</td><td>1</td><td>~3× más rápida</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Para una webcam de 640×480: BGR procesa 921,600 comparaciones por frame vs 307,200 en gris. A 30fps la diferencia es significativa.</p>
+
+      <div class="warn-box">
+        <strong>Nota sobre MOG2:</strong> no necesita la conversión a gris — trabaja directamente con el frame BGR y extrae más información de color para separar fondo de primer plano. El paso cvtColor solo aplica al método AbsDiff.
+      </div>
+    </div>
+
+    <!-- ═══════ MÉTODOS ═══════ -->
+    <div class="panel" id="panel-metodos">
+      <p class="section-label">Elige un método para comparar</p>
+
+      <div class="method-tabs">
+        <button class="method-btn active" id="mBtn0" onclick="showMethod(0)">AbsDiff</button>
+        <button class="method-btn" id="mBtn1" onclick="showMethod(1)">MOG2</button>
+        <button class="method-btn" id="mBtn2" onclick="showMethod(2)">Comparativa</button>
+      </div>
+
+      <div id="methodContent"></div>
+
+      <p class="section-label" style="margin-top:20px">Parámetros clave de MOG2</p>
+      <table class="cmp-table">
+        <thead><tr><th>Parámetro</th><th>Valor usado</th><th>Significado</th><th>Ajustar cuando...</th></tr></thead>
+        <tbody>
+          <tr><td><code>history</code></td><td>500</td><td>Frames que usa para aprender el fondo</td><td>Cámara fija larga duración → subir a 1000+</td></tr>
+          <tr><td><code>varThreshold</code></td><td>50</td><td>Sensibilidad del modelo — mayor = menos sensible</td><td>Muchos falsos positivos → subir a 80–100</td></tr>
+          <tr><td><code>detectShadows</code></td><td>False</td><td>Marcar sombras como movimiento parcial (gris=127)</td><td>Necesitas ignorar sombras → dejar False</td></tr>
+          <tr><td><code>learningRate</code></td><td>-1</td><td>Velocidad de adaptación (-1 = automático)</td><td>Fondo cambia lento → usar 0.001–0.01</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════ CÓDIGO ═══════ -->
+    <div class="panel" id="panel-codigo">
+      <p class="section-label">Script completo</p>
+      <div class="info-box">
+        <strong>Estructura:</strong> mismas secciones numeradas que el Proyecto 1. Las secciones nuevas son la 5 (cálculo de máscara), 6 (morfología), 7 (contornos) y 9 (HUD con overlay semitransparente).
+      </div>
+      <button class="copy-btn" id="copyBtn" onclick="copyCode()">📋 Copiar código</button>
+      <div class="code-header"><span class="fn">proyecto2_movimiento.py</span><span class="lt">python</span></div>
+<pre id="codeBlock"><span class="kw">import</span> <span class="fn2">cv2</span>
+<span class="kw">import</span> <span class="fn2">numpy</span> <span class="kw">as</span> np
+<span class="kw">from</span> <span class="fn2">datetime</span> <span class="kw">import</span> datetime
+
+<span class="cm"># ── 1. Abrir cámara ───────────────────────────────────────────────</span>
+cap <span class="op">=</span> cv2.<span class="fn2">VideoCapture</span>(<span class="nu">0</span>)
+<span class="kw">if not</span> cap.<span class="fn2">isOpened</span>():
+    <span class="kw">print</span>(<span class="st">"Error: no se pudo abrir la cámara"</span>)
+    <span class="fn2">exit</span>()
+
+<span class="cm"># ── 2. Configuración inicial ──────────────────────────────────────</span>
+metodo_activo   <span class="op">=</span> <span class="st">"absdiff"</span>
+frame_anterior  <span class="op">=</span> <span class="kw">None</span>
+eventos_totales <span class="op">=</span> <span class="nu">0</span>
+
+mog2 <span class="op">=</span> cv2.<span class="fn2">createBackgroundSubtractorMOG2</span>(
+    history<span class="op">=</span><span class="nu">500</span>, varThreshold<span class="op">=</span><span class="nu">50</span>, detectShadows<span class="op">=</span><span class="kw">False</span>
+)
+
+<span class="cm"># ── 3. Ventana y trackbar de sensibilidad ─────────────────────────</span>
+<span class="hl">VENTANA</span> <span class="op">=</span> <span class="st">"Proyecto 2 - Detector de movimiento"</span>
+cv2.<span class="fn2">namedWindow</span>(<span class="hl">VENTANA</span>)  <span class="cm"># DEBE ir antes de createTrackbar</span>
+cv2.<span class="fn2">createTrackbar</span>(<span class="st">"Sensibilidad"</span>, <span class="hl">VENTANA</span>, <span class="nu">1500</span>, <span class="nu">10000</span>, <span class="kw">lambda</span> x: <span class="kw">None</span>)
+
+<span class="cm"># ── 4. Loop principal ─────────────────────────────────────────────</span>
+<span class="kw">while True</span>:
+    ret, frame <span class="op">=</span> cap.<span class="fn2">read</span>()
+    <span class="kw">if not</span> ret: <span class="kw">break</span>
+
+    frame <span class="op">=</span> cv2.<span class="fn2">flip</span>(frame, <span class="nu">1</span>)
+    visualizacion <span class="op">=</span> frame.<span class="fn2">copy</span>()
+    area_minima <span class="op">=</span> <span class="fn2">max</span>(cv2.<span class="fn2">getTrackbarPos</span>(<span class="st">"Sensibilidad"</span>, <span class="hl">VENTANA</span>), <span class="nu">100</span>)
+
+    <span class="cm"># ── 5. Calcular máscara de movimiento ─────────────────────────</span>
+    <span class="kw">if</span> metodo_activo <span class="op">==</span> <span class="st">"absdiff"</span>:
+        gris <span class="op">=</span> cv2.<span class="fn2">cvtColor</span>(frame, cv2.<span class="fn2">COLOR_BGR2GRAY</span>)
+        gris <span class="op">=</span> cv2.<span class="fn2">GaussianBlur</span>(gris, (<span class="nu">21</span>, <span class="nu">21</span>), <span class="nu">0</span>)
+        <span class="kw">if</span> frame_anterior <span class="kw">is None</span>:
+            frame_anterior <span class="op">=</span> gris
+            <span class="kw">continue</span>
+        diferencia <span class="op">=</span> cv2.<span class="fn2">absdiff</span>(frame_anterior, gris)
+        _, mascara <span class="op">=</span> cv2.<span class="fn2">threshold</span>(diferencia, <span class="nu">25</span>, <span class="nu">255</span>, cv2.<span class="fn2">THRESH_BINARY</span>)
+        frame_anterior <span class="op">=</span> gris
+    <span class="kw">else</span>:  <span class="cm"># mog2</span>
+        mascara <span class="op">=</span> mog2.<span class="fn2">apply</span>(frame, learningRate<span class="op">=-</span><span class="nu">1</span>)
+        _, mascara <span class="op">=</span> cv2.<span class="fn2">threshold</span>(mascara, <span class="nu">200</span>, <span class="nu">255</span>, cv2.<span class="fn2">THRESH_BINARY</span>)
+
+    <span class="cm"># ── 6. Limpiar máscara con morfología ─────────────────────────</span>
+    kernel <span class="op">=</span> cv2.<span class="fn2">getStructuringElement</span>(cv2.<span class="fn2">MORPH_ELLIPSE</span>, (<span class="nu">5</span>, <span class="nu">5</span>))
+    mascara <span class="op">=</span> cv2.<span class="fn2">dilate</span>(mascara, kernel, iterations<span class="op">=</span><span class="nu">2</span>)
+
+    <span class="cm"># ── 7. Encontrar contornos ────────────────────────────────────</span>
+    <span class="cm"># OpenCV 4.x: devuelve 2 valores (contornos, jerarquía)</span>
+    contornos, _ <span class="op">=</span> cv2.<span class="fn2">findContours</span>(
+        mascara, cv2.<span class="fn2">RETR_EXTERNAL</span>, cv2.<span class="fn2">CHAIN_APPROX_SIMPLE</span>
+    )
+    hay_movimiento <span class="op">=</span> <span class="kw">False</span>
+
+    <span class="kw">for</span> contorno <span class="kw">in</span> contornos:
+        <span class="kw">if</span> cv2.<span class="fn2">contourArea</span>(contorno) <span class="op">&lt;</span> area_minima:
+            <span class="kw">continue</span>
+        hay_movimiento <span class="op">=</span> <span class="kw">True</span>
+        x, y, w, h <span class="op">=</span> cv2.<span class="fn2">boundingRect</span>(contorno)
+        cv2.<span class="fn2">rectangle</span>(visualizacion, (x, y), (x<span class="op">+</span>w, y<span class="op">+</span>h), (<span class="nu">0</span>, <span class="nu">255</span>, <span class="nu">0</span>), <span class="nu">2</span>)
+        cv2.<span class="fn2">putText</span>(visualizacion, <span class="fn2">f</span><span class="st">"{int(cv2.contourArea(contorno))}px2"</span>,
+                    (x, y<span class="op">-</span><span class="nu">8</span>), cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">0.45</span>, (<span class="nu">0</span>,<span class="nu">255</span>,<span class="nu">0</span>), <span class="nu">1</span>)
+
+    <span class="kw">if</span> hay_movimiento: eventos_totales <span class="op">+=</span> <span class="nu">1</span>
+
+    <span class="cm"># ── 8. HUD semitransparente ───────────────────────────────────</span>
+    overlay <span class="op">=</span> visualizacion.<span class="fn2">copy</span>()
+    cv2.<span class="fn2">rectangle</span>(overlay, (<span class="nu">0</span>,<span class="nu">0</span>), (visualizacion.shape[<span class="nu">1</span>],<span class="nu">40</span>), (<span class="nu">0</span>,<span class="nu">0</span>,<span class="nu">0</span>), <span class="op">-</span><span class="nu">1</span>)
+    cv2.<span class="fn2">addWeighted</span>(overlay, <span class="nu">0.5</span>, visualizacion, <span class="nu">0.5</span>, <span class="nu">0</span>, visualizacion)
+
+    color_estado <span class="op">=</span> (<span class="nu">0</span>,<span class="nu">0</span>,<span class="nu">255</span>) <span class="kw">if</span> hay_movimiento <span class="kw">else</span> (<span class="nu">200</span>,<span class="nu">200</span>,<span class="nu">200</span>)
+    texto_estado <span class="op">=</span> <span class="st">"MOVIMIENTO DETECTADO"</span> <span class="kw">if</span> hay_movimiento <span class="kw">else</span> <span class="st">"Sin movimiento"</span>
+    cv2.<span class="fn2">putText</span>(visualizacion, texto_estado,
+                (<span class="nu">10</span>,<span class="nu">26</span>), cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">0.65</span>, color_estado, <span class="nu">2</span>)
+
+    alto <span class="op">=</span> visualizacion.shape[<span class="nu">0</span>]
+    cv2.<span class="fn2">putText</span>(visualizacion, <span class="fn2">f</span><span class="st">"Eventos: {eventos_totales}"</span>,
+                (<span class="nu">10</span>, alto<span class="op">-</span><span class="nu">40</span>), cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">0.5</span>, (<span class="nu">180</span>,<span class="nu">180</span>,<span class="nu">180</span>), <span class="nu">1</span>)
+    cv2.<span class="fn2">putText</span>(visualizacion, <span class="st">"1=AbsDiff  2=MOG2  R=reset  S=captura  Q=salir"</span>,
+                (<span class="nu">10</span>, alto<span class="op">-</span><span class="nu">15</span>), cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">0.45</span>, (<span class="nu">120</span>,<span class="nu">120</span>,<span class="nu">120</span>), <span class="nu">1</span>)
+
+    <span class="cm"># ── 9. Mostrar ventanas ───────────────────────────────────────</span>
+    mascara_bgr <span class="op">=</span> cv2.<span class="fn2">cvtColor</span>(mascara, cv2.<span class="fn2">COLOR_GRAY2BGR</span>)
+    cv2.<span class="fn2">imshow</span>(<span class="st">"Mascara de movimiento"</span>, mascara_bgr)
+    cv2.<span class="fn2">imshow</span>(<span class="hl">VENTANA</span>, visualizacion)
+
+    <span class="cm"># ── 10. Teclado ───────────────────────────────────────────────</span>
+    tecla <span class="op">=</span> cv2.<span class="fn2">waitKey</span>(<span class="nu">1</span>) <span class="op">&</span> <span class="nu">0xFF</span>
+    <span class="kw">if</span>   tecla <span class="op">==</span> <span class="fn2">ord</span>(<span class="st">'q'</span>):                   <span class="kw">break</span>
+    <span class="kw">elif</span> tecla <span class="kw">in</span> (<span class="fn2">ord</span>(<span class="st">'1'</span>), <span class="nu">177</span>): metodo_activo <span class="op">=</span> <span class="st">"absdiff"</span>; frame_anterior <span class="op">=</span> <span class="kw">None</span>
+    <span class="kw">elif</span> tecla <span class="kw">in</span> (<span class="fn2">ord</span>(<span class="st">'2'</span>), <span class="nu">178</span>): metodo_activo <span class="op">=</span> <span class="st">"mog2"</span>
+    <span class="kw">elif</span> tecla <span class="kw">in</span> (<span class="fn2">ord</span>(<span class="st">'r'</span>), <span class="fn2">ord</span>(<span class="st">'R'</span>)):
+        frame_anterior <span class="op">=</span> <span class="kw">None</span>
+        mog2 <span class="op">=</span> cv2.<span class="fn2">createBackgroundSubtractorMOG2</span>(history<span class="op">=</span><span class="nu">500</span>, varThreshold<span class="op">=</span><span class="nu">50</span>, detectShadows<span class="op">=</span><span class="kw">False</span>)
+        eventos_totales <span class="op">=</span> <span class="nu">0</span>
+    <span class="kw">elif</span> tecla <span class="kw">in</span> (<span class="fn2">ord</span>(<span class="st">'s'</span>), <span class="fn2">ord</span>(<span class="st">'S'</span>)):
+        nombre <span class="op">=</span> <span class="fn2">f</span><span class="st">"movimiento_{datetime.now():%Y%m%d_%H%M%S}.png"</span>
+        cv2.<span class="fn2">imwrite</span>(nombre, visualizacion)
+
+<span class="cm"># ── 11. Liberar recursos ──────────────────────────────────────────</span>
+cap.<span class="fn2">release</span>()
+cv2.<span class="fn2">destroyAllWindows</span>()
+<span class="kw">print</span>(<span class="fn2">f</span><span class="st">"Eventos detectados: {eventos_totales}"</span>)</pre>
+
+      <div class="info-box" style="margin-top:8px">
+        <strong>Nuevas funciones respecto al Proyecto 1:</strong> <code>createBackgroundSubtractorMOG2</code>, <code>namedWindow</code>, <code>createTrackbar</code>, <code>getTrackbarPos</code>, <code>absdiff</code>, <code>dilate</code>, <code>getStructuringElement</code>, <code>findContours</code>, <code>contourArea</code>, <code>boundingRect</code>, <code>addWeighted</code>.
+      </div>
+    </div>
+
+    <!-- ═══════ BUGS CONOCIDOS ═══════ -->
+    <div class="panel" id="panel-bugs">
+      <p class="section-label">Bugs conocidos y soluciones aplicadas</p>
+
+      <div class="danger-box">
+        <strong>🐛 Bug crítico — findContours retorna distinto en OpenCV 3.x vs 4.x</strong><br><br>
+        Este es el bug más común al copiar código de Stack Overflow o tutoriales viejos.
+      </div>
+      <div class="code-header"><span class="fn">diferencia entre versiones</span><span class="lt">python</span></div>
+      <pre><span class="cm"># OpenCV 3.x — RETORNA 3 VALORES (imagen, contornos, jerarquía)</span>
+_, contornos, _ <span class="op">=</span> cv2.<span class="fn2">findContours</span>(mascara, cv2.<span class="fn2">RETR_EXTERNAL</span>, cv2.<span class="fn2">CHAIN_APPROX_SIMPLE</span>)
+
+<span class="cm"># OpenCV 4.x — RETORNA 2 VALORES (contornos, jerarquía)  ← tu entorno</span>
+contornos, _ <span class="op">=</span> cv2.<span class="fn2">findContours</span>(mascara, cv2.<span class="fn2">RETR_EXTERNAL</span>, cv2.<span class="fn2">CHAIN_APPROX_SIMPLE</span>)
+
+<span class="cm"># Forma compatible con ambas versiones:</span>
+resultado <span class="op">=</span> cv2.<span class="fn2">findContours</span>(mascara, cv2.<span class="fn2">RETR_EXTERNAL</span>, cv2.<span class="fn2">CHAIN_APPROX_SIMPLE</span>)
+contornos <span class="op">=</span> resultado[<span class="op">-</span><span class="nu">2</span>]  <span class="cm"># penúltimo elemento — siempre son los contornos</span></pre>
+
+      <p class="section-label" style="margin-top:20px">Tabla completa de issues</p>
+      <table class="data-table">
+        <thead><tr><th>Síntoma</th><th>Causa</th><th>Solución</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>ValueError: too many values to unpack</td>
+            <td><code>findContours</code> retorna 3 valores (OpenCV 3.x)</td>
+            <td>Cambiar a <code>_, contornos, _ = ...</code></td>
+          </tr>
+          <tr>
+            <td>cv2.error en createTrackbar</td>
+            <td><code>namedWindow</code> no se llamó antes</td>
+            <td>Siempre <code>namedWindow</code> antes de <code>createTrackbar</code></td>
+          </tr>
+          <tr>
+            <td>Movimiento fantasma al cambiar de método</td>
+            <td><code>frame_anterior</code> tiene frame del método anterior</td>
+            <td>Resetear a <code>None</code> al cambiar — ya incluido en el código</td>
+          </tr>
+          <tr>
+            <td>Muchos rectángulos sobre el mismo objeto</td>
+            <td>Máscara con huecos genera múltiples contornos</td>
+            <td>Aumentar <code>iterations</code> del <code>dilate</code> o usar <code>RETR_EXTERNAL</code></td>
+          </tr>
+          <tr>
+            <td>MOG2 detecta todo como movimiento al inicio</td>
+            <td>Necesita ~5 segundos para aprender el fondo</td>
+            <td>Normal — esperar o presionar <code>R</code> con escena estática</td>
+          </tr>
+          <tr>
+            <td>Error al mostrar máscara con imshow</td>
+            <td><code>imshow</code> espera BGR pero máscara es GRAY de 1 canal</td>
+            <td>Convertir: <code>cv2.cvtColor(mascara, COLOR_GRAY2BGR)</code></td>
+          </tr>
+          <tr>
+            <td>numpy.core.multiarray failed to import</td>
+            <td>NumPy 2.x incompatible con python3-opencv de apt</td>
+            <td><code>pip install --user "numpy&lt;2"</code> (herencia del Proyecto 1)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════ RETOS ═══════ -->
+    <div class="panel" id="panel-retos">
+      <p class="section-label">Retos — de menor a mayor dificultad</p>
+
+      <div class="step">
+        <div class="step-num g">A</div>
+        <div class="step-content">
+          <h4>Mostrar hora y fecha en el HUD</h4>
+          <p>Agrega la hora actual en la esquina superior derecha de cada frame. Usa <code>datetime.now().strftime("%H:%M:%S")</code> dentro del loop. La fecha cambia cada frame — ideal para grabar evidencia.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num g">B</div>
+        <div class="step-content">
+          <h4>Grabar video automáticamente al detectar movimiento</h4>
+          <p>Crea un <code>cv2.VideoWriter</code> y escribe frames cuando <code>hay_movimiento == True</code>. Detén la grabación si no hay movimiento por más de 3 segundos. Usa <code>cv2.VideoWriter_fourcc(*'XVID')</code> para el codec.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num g">C</div>
+        <div class="step-content">
+          <h4>Zona de interés (ROI) — detectar solo dentro de un área</h4>
+          <p>Define una región <code>(x1, y1, x2, y2)</code> y aplica la detección solo dentro de ese recorte: <code>mascara_roi = mascara[y1:y2, x1:x2]</code>. Dibuja el rectángulo de la ROI en azul sobre el video.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num g">D</div>
+        <div class="step-content">
+          <h4>Heatmap acumulativo de movimiento</h4>
+          <p>Crea un array <code>heatmap = np.zeros_like(frame, dtype=np.float32)</code> y en cada frame suma la máscara: <code>heatmap += mascara_bgr * 0.1</code>. Usa <code>cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)</code> para visualizarlo. Combínalo con el video con <code>addWeighted</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num g">E</div>
+        <div class="step-content">
+          <h4>Alerta visual persistente de 3 segundos</h4>
+          <p>Guarda el <code>time.time()</code> cuando se detecta movimiento. Muestra "⚠ ALERTA" en rojo mientras <code>time.time() - ultimo_evento &lt; 3</code>. Así la alerta no parpadea sino que se mantiene 3 segundos tras el último movimiento detectado.</p>
+        </div>
+      </div>
+
+      <div class="warn-box" style="margin-top:8px">
+        <strong>💡 Consejo:</strong> el Reto B (VideoWriter) es el más valioso para vigilancia real. El Reto D (heatmap) es el más visualmente impresionante. Empieza por el A que es el más sencillo.
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        <button class="reto-btn" onclick="toggleSolution('A')">Reto A — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('B')">Reto B — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('C')">Reto C — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('D')">Reto D — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('E')">Reto E — ver solución</button>
+      </div>
+      <div id="solutionBox" style="display:none"></div>
+    </div>
+
+  </div><!-- /tab-content -->
+
+  <!-- FOOTER -->
+  <div class="nav-links">
+    <a class="nav-link" href="../proyecto1-webcam/proyecto1_opencv_guia.html">← Proyecto 1 · Captura y filtros</a>
+    <a class="nav-link" href="#">Proyecto 3 · Detector de rostros →</a>
+  </div>
+  <div class="footer">
+    <p>Proyecto 2 de 15 — Serie ML con Webcam y Micrófono</p>
+    <p style="margin-top:6px">Docs: <a href="https://docs.opencv.org/4.x/d1/dc5/tutorial_background_subtraction.html" target="_blank">Background Subtraction — OpenCV</a></p>
+  </div>
+
+</div>
+
+<script>
+// ── TABS ──────────────────────────────────────────────────────────
+var tabCount = 6;
+var visited = new Set(['conceptos']);
+function showTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  visited.add(name);
+  var pct = Math.round(visited.size / tabCount * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = visited.size + ' / ' + tabCount + ' pasos';
+}
+
+// ── ABSDIFF DEMO ──────────────────────────────────────────────────
+var demoCanvas = document.getElementById('demoCanvas');
+var ctx = demoCanvas.getContext('2d');
+demoCanvas.width = demoCanvas.offsetWidth || 600;
+demoCanvas.height = 120;
+var W = demoCanvas.width, H = 120;
+
+function updateDemo() {
+  var thresh = parseInt(document.getElementById('threshSlider').value);
+  document.getElementById('threshVal').textContent = thresh;
+  ctx.clearRect(0, 0, W, H);
+
+  // Draw two "frames" as gradient bars
+  var detected = 0;
+  for (var x = 0; x < W; x++) {
+    var val1 = 80 + Math.sin(x * 0.03) * 60 + Math.sin(x * 0.08) * 20;
+    var val2 = val1 + Math.sin(x * 0.05 + 1.2) * 40 + (x > W*0.35 && x < W*0.65 ? 60 : 0);
+    var diff = Math.abs(val1 - val2);
+    var motion = diff > thresh;
+    if (motion) detected++;
+
+    ctx.fillStyle = motion ? 'rgba(63,185,80,0.7)' : 'rgba(88,166,255,0.15)';
+    ctx.fillRect(x, 10, 1, H - 20);
+
+    // diff line
+    var diffH = (diff / 255) * (H - 20);
+    ctx.fillStyle = motion ? '#3fb950' : '#58a6ff';
+    ctx.fillRect(x, H - 10 - diffH * 0.6, 1, 2);
+  }
+
+  // Threshold line
+  var threshY = H - 10 - (thresh / 255) * (H - 20) * 0.6;
+  ctx.strokeStyle = '#ffa657';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(0, threshY); ctx.lineTo(W, threshY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  var pct = Math.round(detected / W * 100);
+  document.getElementById('demoStatus').textContent =
+    pct + '% del ancho detectado como movimiento';
+  document.getElementById('demoStatus').style.color =
+    pct > 30 ? '#f87171' : pct > 10 ? '#ffa657' : '#3fb950';
+}
+updateDemo();
+window.addEventListener('resize', function() {
+  demoCanvas.width = demoCanvas.offsetWidth || 600;
+  W = demoCanvas.width;
+  updateDemo();
+});
+
+// ── PIPELINE DETAIL ───────────────────────────────────────────────
+var pipeData = [
+  { title: 'Frame BGR — entrada cruda',
+    body: 'El frame viene de <code>cap.read()</code> como numpy array de shape <code>(alto, ancho, 3)</code> con canales en orden BGR. Se hace <code>flip(frame, 1)</code> para espejo antes de procesarlo.',
+    code: '<span class="cm"># frame.shape → (480, 640, 3)  dtype=uint8</span>\nret, frame <span class="op">=</span> cap.<span class="fn2">read</span>()\nframe <span class="op">=</span> cv2.<span class="fn2">flip</span>(frame, <span class="nu">1</span>)\nvisualizacion <span class="op">=</span> frame.<span class="fn2">copy</span>()  <span class="cm"># copia para dibujar encima</span>' },
+  { title: 'GaussianBlur — reducir ruido de sensor',
+    body: 'Antes de comparar frames, se suaviza con un kernel 21×21. Sin este paso, el ruido térmico del sensor genera miles de píxeles "en movimiento" aunque la escena esté completamente estática.',
+    code: 'gris <span class="op">=</span> cv2.<span class="fn2">cvtColor</span>(frame, cv2.<span class="fn2">COLOR_BGR2GRAY</span>)\ngris <span class="op">=</span> cv2.<span class="fn2">GaussianBlur</span>(gris, (<span class="nu">21</span>, <span class="nu">21</span>), <span class="nu">0</span>)\n<span class="cm"># gris.shape → (480, 640)  — un solo canal</span>' },
+  { title: 'absdiff + threshold — generar máscara binaria',
+    body: '<code>absdiff</code> calcula <code>|frame_actual - frame_anterior|</code>. El resultado es una imagen donde los valores altos indican cambio. <code>threshold(25)</code> binariza: todo lo que cambió más de 25 unidades se vuelve blanco (255), el resto negro (0).',
+    code: 'diferencia <span class="op">=</span> cv2.<span class="fn2">absdiff</span>(frame_anterior, gris)\n<span class="cm"># diferencia.shape → (480, 640)  valores 0-255</span>\n\n_, mascara <span class="op">=</span> cv2.<span class="fn2">threshold</span>(diferencia, <span class="nu">25</span>, <span class="nu">255</span>, cv2.<span class="fn2">THRESH_BINARY</span>)\n<span class="cm"># mascara: blanco=movimiento, negro=fondo</span>' },
+  { title: 'dilate — morfología para limpiar la máscara',
+    body: 'Un objeto en movimiento genera una máscara con huecos (partes uniformes del objeto no cambian mucho). <code>dilate</code> expande las zonas blancas con un kernel elíptico, uniendo fragmentos cercanos del mismo objeto.',
+    code: 'kernel <span class="op">=</span> cv2.<span class="fn2">getStructuringElement</span>(cv2.<span class="fn2">MORPH_ELLIPSE</span>, (<span class="nu">5</span>, <span class="nu">5</span>))\nmascara <span class="op">=</span> cv2.<span class="fn2">dilate</span>(mascara, kernel, iterations<span class="op">=</span><span class="nu">2</span>)\n<span class="cm"># iterations=2: dilata dos veces seguidas → más relleno</span>' },
+  { title: 'findContours — extraer regiones de movimiento',
+    body: '<code>RETR_EXTERNAL</code> solo devuelve los contornos exteriores (ignora huecos dentro de objetos). <code>CHAIN_APPROX_SIMPLE</code> comprime segmentos horizontales/verticales guardando solo los extremos — usa menos memoria.',
+    code: '<span class="cm"># OpenCV 4.x: 2 valores de retorno</span>\ncontornos, _ <span class="op">=</span> cv2.<span class="fn2">findContours</span>(\n    mascara,\n    cv2.<span class="fn2">RETR_EXTERNAL</span>,      <span class="cm"># solo contornos externos</span>\n    cv2.<span class="fn2">CHAIN_APPROX_SIMPLE</span>  <span class="cm"># comprime puntos redundantes</span>\n)' },
+  { title: 'boundingRect — dibujar sobre el frame',
+    body: '<code>boundingRect</code> devuelve el rectángulo mínimo alineado con los ejes que contiene el contorno: <code>(x, y, ancho, alto)</code>. Filtramos primero por <code>contourArea</code> para ignorar contornos pequeños (ruido).',
+    code: '<span class="kw">for</span> contorno <span class="kw">in</span> contornos:\n    <span class="kw">if</span> cv2.<span class="fn2">contourArea</span>(contorno) <span class="op">&lt;</span> area_minima:\n        <span class="kw">continue</span>\n    x, y, w, h <span class="op">=</span> cv2.<span class="fn2">boundingRect</span>(contorno)\n    cv2.<span class="fn2">rectangle</span>(visualizacion, (x,y), (x<span class="op">+</span>w, y<span class="op">+</span>h), (<span class="nu">0</span>,<span class="nu">255</span>,<span class="nu">0</span>), <span class="nu">2</span>)' }
+];
+function showPipe(i) {
+  var d = pipeData[i];
+  document.getElementById('pipelineDetail').innerHTML =
+    '<div class="card" style="margin-top:12px;border-color:rgba(88,166,255,.3)">' +
+    '<h4 style="color:var(--blue);margin-bottom:8px">' + d.title + '</h4>' +
+    '<p style="margin-bottom:12px">' + d.body + '</p></div>' +
+    '<div class="code-header"><span class="fn">fragmento</span><span class="lt">python</span></div>' +
+    '<pre>' + d.code + '</pre>';
+}
+showPipe(0);
+
+// ── METHODS ───────────────────────────────────────────────────────
+var methodData = [
+  { name:'AbsDiff',
+    content:'<div class="card accent-blue" style="margin-bottom:12px"><h4>Diferencia absoluta entre frames consecutivos</h4><p>Compara el frame actual con el <strong>inmediatamente anterior</strong>. Cualquier píxel que cambie más de 25 unidades de intensidad se marca como movimiento.</p></div>' +
+    '<div class="code-header"><span class="fn">lógica central AbsDiff</span><span class="lt">python</span></div>' +
+    '<pre>diferencia <span class="op">=</span> cv2.<span class="fn2">absdiff</span>(frame_anterior, frame_actual)\n_, mascara  <span class="op">=</span> cv2.<span class="fn2">threshold</span>(diferencia, <span class="nu">25</span>, <span class="nu">255</span>, cv2.<span class="fn2">THRESH_BINARY</span>)\nframe_anterior <span class="op">=</span> frame_actual  <span class="cm"># deslizar ventana</span></pre>' +
+    '<div class="ok-box"><strong>✅ Ventajas:</strong> simple, sin parámetros que tunear, respuesta inmediata desde el primer frame.</div>' +
+    '<div class="warn-box"><strong>⚠️ Limitaciones:</strong> sensible al ruido de cámara, a cambios de iluminación y a objetos que se mueven lentamente (parecen "transparentes").</div>'
+  },
+  { name:'MOG2',
+    content:'<div class="card accent-green" style="margin-bottom:12px"><h4>Mixture of Gaussians — modelo estadístico del fondo</h4><p>Construye un modelo probabilístico del fondo a lo largo del tiempo. Cada píxel se modela con una mezcla de distribuciones gaussianas. Lo que no encaja en el modelo = movimiento.</p></div>' +
+    '<div class="code-header"><span class="fn">lógica central MOG2</span><span class="lt">python</span></div>' +
+    '<pre>mog2 <span class="op">=</span> cv2.<span class="fn2">createBackgroundSubtractorMOG2</span>(\n    history<span class="op">=</span><span class="nu">500</span>, varThreshold<span class="op">=</span><span class="nu">50</span>, detectShadows<span class="op">=</span><span class="kw">False</span>\n)\n\n<span class="cm"># En el loop:</span>\nmascara <span class="op">=</span> mog2.<span class="fn2">apply</span>(frame, learningRate<span class="op">=-</span><span class="nu">1</span>)\n<span class="cm"># learningRate=-1 → OpenCV calcula automáticamente</span></pre>' +
+    '<div class="ok-box"><strong>✅ Ventajas:</strong> se adapta a cambios graduales de iluminación, más robusto para vigilancia continua.</div>' +
+    '<div class="warn-box"><strong>⚠️ Limitaciones:</strong> necesita ~5s para estabilizarse, más lento que AbsDiff, parámetros a ajustar.</div>'
+  },
+  { name:'Comparativa',
+    content:'<table class="cmp-table"><thead><tr><th>Característica</th><th>AbsDiff</th><th>MOG2</th></tr></thead><tbody>' +
+    '<tr><td>Tiempo de inicio</td><td>Inmediato</td><td>~5 segundos para aprender fondo</td></tr>' +
+    '<tr><td>Cambios de iluminación</td><td>Falla — detecta todo</td><td>Se adapta automáticamente</td></tr>' +
+    '<tr><td>Movimiento lento</td><td>Falla — objeto "desaparece"</td><td>Detecta bien</td></tr>' +
+    '<tr><td>Movimiento rápido</td><td>Detecta muy bien</td><td>Puede perder bordes</td></tr>' +
+    '<tr><td>Consumo de CPU</td><td>Bajo</td><td>Moderado</td></tr>' +
+    '<tr><td>Parámetros a ajustar</td><td>Solo umbral (25)</td><td>history, varThreshold, learningRate</td></tr>' +
+    '<tr><td>Uso recomendado</td><td>Demos, aprendizaje, movimiento rápido</td><td>Vigilancia real, larga duración</td></tr>' +
+    '</tbody></table>'
+  }
+];
+function showMethod(i) {
+  document.querySelectorAll('.method-btn').forEach((b,j) => b.classList.toggle('active', j===i));
+  document.getElementById('methodContent').innerHTML = methodData[i].content;
+}
+showMethod(0);
+
+// ── SOLUTIONS ─────────────────────────────────────────────────────
+var solutions = {
+  'A': { title:'Mostrar hora y fecha en HUD',
+    code:'<span class="kw">from</span> <span class="fn2">datetime</span> <span class="kw">import</span> datetime\n\n<span class="cm"># Dentro del loop, antes de imshow:</span>\nhora <span class="op">=</span> datetime.<span class="fn2">now</span>().<span class="fn2">strftime</span>(<span class="st">"%d/%m/%Y  %H:%M:%S"</span>)\ncv2.<span class="fn2">putText</span>(\n    visualizacion, hora,\n    (visualizacion.shape[<span class="nu">1</span>] <span class="op">-</span> <span class="nu">220</span>, visualizacion.shape[<span class="nu">0</span>] <span class="op">-</span> <span class="nu">15</span>),\n    cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">0.5</span>, (<span class="nu">180</span>, <span class="nu">180</span>, <span class="nu">180</span>), <span class="nu">1</span>\n)' },
+  'B': { title:'Grabar video al detectar movimiento',
+    code:'<span class="kw">import</span> <span class="fn2">time</span>\n\n<span class="cm"># Antes del while:</span>\nfourcc  <span class="op">=</span> cv2.<span class="fn2">VideoWriter_fourcc</span>(<span class="op">*</span><span class="st">\'XVID\'</span>)\nwriter  <span class="op">=</span> <span class="kw">None</span>\nultimo_mov <span class="op">=</span> <span class="nu">0</span>\nGRABANDO_TIMEOUT <span class="op">=</span> <span class="nu">3</span>  <span class="cm"># segundos sin movimiento para detener</span>\n\n<span class="cm"># Dentro del loop, después de detectar movimiento:</span>\n<span class="kw">if</span> hay_movimiento:\n    ultimo_mov <span class="op">=</span> time.<span class="fn2">time</span>()\n    <span class="kw">if</span> writer <span class="kw">is None</span>:\n        nombre <span class="op">=</span> <span class="fn2">f</span><span class="st">"video_{datetime.now():%Y%m%d_%H%M%S}.avi"</span>\n        h, w <span class="op">=</span> frame.shape[:<span class="nu">2</span>]\n        writer <span class="op">=</span> cv2.<span class="fn2">VideoWriter</span>(nombre, fourcc, <span class="nu">20.0</span>, (w, h))\n        <span class="kw">print</span>(<span class="fn2">f</span><span class="st">"Grabando: {nombre}"</span>)\n\n<span class="kw">if</span> writer <span class="kw">is not None</span>:\n    writer.<span class="fn2">write</span>(visualizacion)\n    <span class="kw">if</span> time.<span class="fn2">time</span>() <span class="op">-</span> ultimo_mov <span class="op">&gt;</span> GRABANDO_TIMEOUT:\n        writer.<span class="fn2">release</span>()\n        writer <span class="op">=</span> <span class="kw">None</span>\n        <span class="kw">print</span>(<span class="st">"Grabación detenida"</span>)' },
+  'C': { title:'Zona de interés ROI',
+    code:'<span class="cm"># Definir ROI (ajusta según tu resolución)</span>\nroi_x1, roi_y1, roi_x2, roi_y2 <span class="op">=</span> <span class="nu">100</span>, <span class="nu">80</span>, <span class="nu">540</span>, <span class="nu">400</span>\n\n<span class="cm"># Después de generar la máscara completa:</span>\nmascara_roi <span class="op">=</span> np.<span class="fn2">zeros_like</span>(mascara)  <span class="cm"># máscara vacía del mismo tamaño</span>\nmascara_roi[roi_y1:roi_y2, roi_x1:roi_x2] <span class="op">=</span> mascara[roi_y1:roi_y2, roi_x1:roi_x2]\nmascara <span class="op">=</span> mascara_roi  <span class="cm"># reemplazar la máscara original</span>\n\n<span class="cm"># Dibujar el rectángulo de la ROI en azul:</span>\ncv2.<span class="fn2">rectangle</span>(visualizacion,\n             (roi_x1, roi_y1), (roi_x2, roi_y2),\n             (<span class="nu">255</span>, <span class="nu">100</span>, <span class="nu">0</span>), <span class="nu">2</span>)\ncv2.<span class="fn2">putText</span>(visualizacion, <span class="st">"ROI"</span>, (roi_x1, roi_y1<span class="op">-</span><span class="nu">8</span>),\n            cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">0.5</span>, (<span class="nu">255</span>,<span class="nu">100</span>,<span class="nu">0</span>), <span class="nu">1</span>)' },
+  'D': { title:'Heatmap acumulativo de movimiento',
+    code:'<span class="cm"># Antes del while:</span>\nheatmap <span class="op">=</span> np.<span class="fn2">zeros</span>((alto_frame, ancho_frame), dtype<span class="op">=</span>np.<span class="fn2">float32</span>)\n\n<span class="cm"># Dentro del loop, después de calcular la máscara:</span>\nheatmap <span class="op">+=</span> mascara.<span class="fn2">astype</span>(np.<span class="fn2">float32</span>) <span class="op">*</span> <span class="nu">0.05</span>\nheatmap <span class="op">=</span> np.<span class="fn2">clip</span>(heatmap, <span class="nu">0</span>, <span class="nu">255</span>)\n\nheat_uint8 <span class="op">=</span> heatmap.<span class="fn2">astype</span>(np.<span class="fn2">uint8</span>)\nheat_color <span class="op">=</span> cv2.<span class="fn2">applyColorMap</span>(heat_uint8, cv2.<span class="fn2">COLORMAP_JET</span>)\n\n<span class="cm"># Superponer sobre el video con 40% de opacidad:</span>\ncv2.<span class="fn2">addWeighted</span>(heat_color, <span class="nu">0.4</span>, visualizacion, <span class="nu">0.6</span>, <span class="nu">0</span>, visualizacion)\n\n<span class="cm"># Para resetear el heatmap con R, agrega en la tecla R:</span>\n<span class="cm"># heatmap[:] = 0</span>' },
+  'E': { title:'Alerta visual persistente de 3 segundos',
+    code:'<span class="kw">import</span> <span class="fn2">time</span>\n\n<span class="cm"># Antes del while:</span>\nultimo_movimiento <span class="op">=</span> <span class="nu">0</span>\nALERTA_DURACION  <span class="op">=</span> <span class="nu">3</span>  <span class="cm"># segundos</span>\n\n<span class="cm"># Dentro del loop, después de detectar movimiento:</span>\n<span class="kw">if</span> hay_movimiento:\n    ultimo_movimiento <span class="op">=</span> time.<span class="fn2">time</span>()\n\nalerta_activa <span class="op">=</span> (time.<span class="fn2">time</span>() <span class="op">-</span> ultimo_movimiento) <span class="op">&lt;</span> ALERTA_DURACION\n\n<span class="kw">if</span> alerta_activa:\n    <span class="cm"># Borde rojo alrededor del frame completo</span>\n    h, w <span class="op">=</span> visualizacion.shape[:<span class="nu">2</span>]\n    cv2.<span class="fn2">rectangle</span>(visualizacion, (<span class="nu">0</span>,<span class="nu">0</span>), (w<span class="op">-</span><span class="nu">1</span>,h<span class="op">-</span><span class="nu">1</span>), (<span class="nu">0</span>,<span class="nu">0</span>,<span class="nu">255</span>), <span class="nu">4</span>)\n    tiempo_restante <span class="op">=</span> ALERTA_DURACION <span class="op">-</span> (time.<span class="fn2">time</span>() <span class="op">-</span> ultimo_movimiento)\n    cv2.<span class="fn2">putText</span>(visualizacion,\n                <span class="fn2">f</span><span class="st">"ALERTA  {tiempo_restante:.1f}s"</span>,\n                (w<span class="op">//</span><span class="nu">2</span> <span class="op">-</span> <span class="nu">80</span>, <span class="nu">70</span>),\n                cv2.<span class="fn2">FONT_HERSHEY_SIMPLEX</span>, <span class="nu">1.0</span>, (<span class="nu">0</span>,<span class="nu">0</span>,<span class="nu">255</span>), <span class="nu">2</span>)' }
+};
+var currentSolution = null;
+function toggleSolution(letter) {
+  var box = document.getElementById('solutionBox');
+  if (currentSolution === letter && box.style.display !== 'none') {
+    box.style.display = 'none'; currentSolution = null; return;
+  }
+  currentSolution = letter;
+  var s = solutions[letter];
+  box.innerHTML =
+    '<div class="solution-box">' +
+    '<h4>✅ Solución: Reto ' + letter + ' — ' + s.title + '</h4>' +
+    '<div class="code-header"><span class="fn">fragmento a integrar</span><span class="lt">python</span></div>' +
+    '<pre>' + s.code + '</pre></div>';
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ── COPY CODE ─────────────────────────────────────────────────────
+function copyCode() {
+  var raw = `import cv2
+import numpy as np
+from datetime import datetime
+
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    print("Error: no se pudo abrir la camara")
+    exit()
+
+metodo_activo   = "absdiff"
+frame_anterior  = None
+eventos_totales = 0
+
+mog2 = cv2.createBackgroundSubtractorMOG2(
+    history=500, varThreshold=50, detectShadows=False
+)
+
+VENTANA = "Proyecto 2 - Detector de movimiento"
+cv2.namedWindow(VENTANA)
+cv2.createTrackbar("Sensibilidad", VENTANA, 1500, 10000, lambda x: None)
+
+while True:
+    ret, frame = cap.read()
+    if not ret: break
+
+    frame = cv2.flip(frame, 1)
+    visualizacion = frame.copy()
+    area_minima = max(cv2.getTrackbarPos("Sensibilidad", VENTANA), 100)
+
+    if metodo_activo == "absdiff":
+        gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gris = cv2.GaussianBlur(gris, (21, 21), 0)
+        if frame_anterior is None:
+            frame_anterior = gris
+            continue
+        diferencia = cv2.absdiff(frame_anterior, gris)
+        _, mascara = cv2.threshold(diferencia, 25, 255, cv2.THRESH_BINARY)
+        frame_anterior = gris
+    else:
+        mascara = mog2.apply(frame, learningRate=-1)
+        _, mascara = cv2.threshold(mascara, 200, 255, cv2.THRESH_BINARY)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    mascara = cv2.dilate(mascara, kernel, iterations=2)
+
+    contornos, _ = cv2.findContours(
+        mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+    hay_movimiento = False
+
+    for contorno in contornos:
+        if cv2.contourArea(contorno) < area_minima:
+            continue
+        hay_movimiento = True
+        x, y, w, h = cv2.boundingRect(contorno)
+        cv2.rectangle(visualizacion, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        cv2.putText(visualizacion, f"{int(cv2.contourArea(contorno))}px2",
+                    (x, y-8), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0,255,0), 1)
+
+    if hay_movimiento: eventos_totales += 1
+
+    overlay = visualizacion.copy()
+    cv2.rectangle(overlay, (0,0), (visualizacion.shape[1],40), (0,0,0), -1)
+    cv2.addWeighted(overlay, 0.5, visualizacion, 0.5, 0, visualizacion)
+
+    color_estado = (0,0,255) if hay_movimiento else (200,200,200)
+    texto_estado = "MOVIMIENTO DETECTADO" if hay_movimiento else "Sin movimiento"
+    cv2.putText(visualizacion, texto_estado,
+                (10,26), cv2.FONT_HERSHEY_SIMPLEX, 0.65, color_estado, 2)
+
+    alto = visualizacion.shape[0]
+    cv2.putText(visualizacion, f"Eventos: {eventos_totales}",
+                (10, alto-40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180,180,180), 1)
+    cv2.putText(visualizacion, "1=AbsDiff  2=MOG2  R=reset  S=captura  Q=salir",
+                (10, alto-15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (120,120,120), 1)
+
+    mascara_bgr = cv2.cvtColor(mascara, cv2.COLOR_GRAY2BGR)
+    cv2.imshow("Mascara de movimiento", mascara_bgr)
+    cv2.imshow(VENTANA, visualizacion)
+
+    tecla = cv2.waitKey(1) & 0xFF
+    if   tecla == ord('q'):                   break
+    elif tecla in (ord('1'), 177): metodo_activo = "absdiff"; frame_anterior = None
+    elif tecla in (ord('2'), 178): metodo_activo = "mog2"
+    elif tecla in (ord('r'), ord('R')):
+        frame_anterior = None
+        mog2 = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=50, detectShadows=False)
+        eventos_totales = 0
+    elif tecla in (ord('s'), ord('S')):
+        nombre = f"movimiento_{datetime.now():%Y%m%d_%H%M%S}.png"
+        cv2.imwrite(nombre, visualizacion)
+
+cap.release()
+cv2.destroyAllWindows()
+print(f"Eventos detectados: {eventos_totales}")
+`;
+  navigator.clipboard.writeText(raw).then(() => {
+    var btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copiar código'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+</script>
+</body>
+</html>

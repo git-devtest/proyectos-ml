@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto 1 — OpenCV Webcam | Guía Interactiva</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e1117;
+    --bg2: #161b22;
+    --bg3: #1c2128;
+    --border: #30363d;
+    --border2: #484f58;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --accent-green: #3fb950;
+    --accent-blue: #58a6ff;
+    --accent-orange: #ffa657;
+    --accent-purple: #d2a8ff;
+    --accent-red: #f87171;
+    --code-bg: #0d1117;
+    --tag-green-bg: rgba(63,185,80,.12);
+    --tag-blue-bg: rgba(88,166,255,.12);
+    --tag-orange-bg: rgba(255,166,87,.12);
+    --tag-purple-bg: rgba(210,168,255,.12);
+    --info-bg: rgba(88,166,255,.07);
+    --info-border: rgba(88,166,255,.25);
+    --warn-bg: rgba(255,166,87,.07);
+    --warn-border: rgba(255,166,87,.25);
+    --success-bg: rgba(63,185,80,.07);
+    --success-border: rgba(63,185,80,.25);
+  }
+
+  body {
+    font-family: 'Sora', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topnav .logo {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; font-size: 14px; color: var(--text);
+    text-decoration: none;
+  }
+  .topnav .logo-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, #1f6feb, #388bfd);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .topnav .sep { color: var(--border2); margin: 0 4px; }
+  .topnav .breadcrumb { font-size: 13px; color: var(--text2); }
+  .topnav .breadcrumb span { color: var(--text); font-weight: 500; }
+  .topnav .spacer { flex: 1; }
+  .topnav .badge-nav {
+    background: var(--tag-green-bg); color: var(--accent-green);
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px; border: 1px solid rgba(63,185,80,.2);
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #1f6feb, #58a6ff, #3fb950, #ffa657);
+  }
+  .hero h1 {
+    font-size: 22px; font-weight: 700; color: var(--text);
+    margin-bottom: 8px; line-height: 1.3;
+  }
+  .hero p { font-size: 14px; color: var(--text2); line-height: 1.7; max-width: 680px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 500; padding: 4px 12px;
+    border-radius: 20px; border: 1px solid transparent;
+  }
+  .badge-green { background: var(--tag-green-bg); color: var(--accent-green); border-color: rgba(63,185,80,.2); }
+  .badge-blue  { background: var(--tag-blue-bg);  color: var(--accent-blue);  border-color: rgba(88,166,255,.2); }
+  .badge-orange{ background: var(--tag-orange-bg);color: var(--accent-orange);border-color: rgba(255,166,87,.2); }
+  .badge-purple{ background: var(--tag-purple-bg);color: var(--accent-purple);border-color: rgba(210,168,255,.2); }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    margin-bottom: 0; overflow-x: auto; background: var(--bg2);
+    border-radius: 12px 12px 0 0; border: 1px solid var(--border);
+  }
+  .tab-btn {
+    padding: 12px 20px; font-size: 13px; font-weight: 500;
+    color: var(--text2); cursor: pointer; border: none; background: none;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    transition: color .15s, border-color .15s; font-family: 'Sora', sans-serif;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); }
+
+  .tab-content {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+  }
+  .panel { display: none; animation: fadein .2s ease; }
+  .panel.active { display: block; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 12px; margin-top: 4px;
+  }
+
+  /* ── CONCEPT GRID ── */
+  .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  @media(max-width:600px){ .concept-grid { grid-template-columns: 1fr; } }
+  .concept-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+  }
+  .concept-card h4 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .concept-card p  { font-size: 12px; color: var(--text2); line-height: 1.7; }
+  .concept-card code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--code-bg); color: var(--accent-orange);
+    padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #161b22; border: 1px solid var(--border);
+    border-radius: 10px 10px 0 0; padding: 8px 14px;
+  }
+  .code-header .filename { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); }
+  .code-header .lang-tag { font-size: 11px; color: var(--text3); background: var(--bg3); padding: 2px 8px; border-radius: 4px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-top: none; border-radius: 0 0 10px 10px;
+    padding: 18px; overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.75; color: #e6edf3;
+    margin-bottom: 16px;
+  }
+  pre.standalone { border-radius: 10px; border-top: 1px solid var(--border); margin-top: 0; }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .st { color: #a5d6ff; }
+  .nu { color: #79c0ff; }
+  .op { color: #58a6ff; }
+
+  /* ── INFO / WARN BOXES ── */
+  .info-box {
+    background: var(--info-bg); border: 1px solid var(--info-border);
+    border-radius: 10px; padding: 13px 16px; margin-bottom: 14px;
+    font-size: 13px; color: var(--text2); line-height: 1.7;
+  }
+  .info-box strong { color: var(--accent-blue); font-weight: 600; }
+  .info-box code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--accent-orange); background: rgba(0,0,0,.3); padding: 1px 5px; border-radius: 4px; }
+  .warn-box {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 10px; padding: 13px 16px; margin-bottom: 14px;
+    font-size: 13px; color: var(--text2); line-height: 1.7;
+  }
+  .warn-box strong { color: var(--accent-orange); font-weight: 600; }
+  .success-box {
+    background: var(--success-bg); border: 1px solid var(--success-border);
+    border-radius: 10px; padding: 13px 16px; margin-bottom: 14px;
+    font-size: 13px; color: var(--text2); line-height: 1.7;
+  }
+  .success-box strong { color: var(--accent-green); font-weight: 600; }
+
+  /* ── COPY BUTTON ── */
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text2); padding: 5px 12px;
+    border: 1px solid var(--border); border-radius: 6px;
+    cursor: pointer; background: none; font-family: 'Sora', sans-serif;
+    transition: background .15s, color .15s; float: right; margin-bottom: 8px;
+  }
+  .copy-btn:hover { background: var(--bg3); color: var(--text); }
+  .copy-btn.copied { color: var(--accent-green); border-color: rgba(63,185,80,.3); }
+
+  /* ── STEPS ── */
+  .step { display: flex; gap: 14px; margin-bottom: 18px; align-items: flex-start; }
+  .step-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--accent-blue);
+    margin-top: 2px; font-family: 'JetBrains Mono', monospace;
+  }
+  .step-num.letter { color: var(--accent-green); }
+  .step-content h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .step-content p  { font-size: 13px; color: var(--text2); line-height: 1.7; }
+  .step-content code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    color: var(--accent-orange); background: var(--code-bg);
+    padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border);
+  }
+
+  /* ── FILTER GRID ── */
+  .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  @media(max-width:600px){ .filter-grid { grid-template-columns: 1fr; } }
+  .filter-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .filter-card:hover { border-color: var(--border2); }
+  .filter-card.selected { border-color: var(--accent-blue); background: rgba(88,166,255,.05); }
+  .filter-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .filter-fn   { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-orange); margin-bottom: 6px; }
+  .filter-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* ── PIXEL DEMO ── */
+  .pixel-demo { display: flex; gap: 16px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+  .pixel-vis { display: grid; grid-template-columns: repeat(5,1fr); gap: 3px; width: 100px; flex-shrink: 0; }
+  .pixel-vis div { height: 18px; border-radius: 3px; transition: background .1s; }
+  .channel-bars { flex: 1; min-width: 200px; }
+  .ch-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .ch-label { font-size: 12px; font-weight: 700; width: 12px; font-family: 'JetBrains Mono', monospace; }
+  .ch-bar-wrap { flex: 1; height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); }
+  .ch-bar { height: 100%; border-radius: 5px; transition: width .2s ease; }
+  .ch-val { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text2); width: 32px; text-align: right; }
+  .pixel-slider { width: 100%; accent-color: var(--accent-blue); margin: 10px 0 4px; cursor: pointer; }
+  .pixel-hint { font-size: 12px; color: var(--text2); text-align: center; }
+
+  /* ── MATRIX VIS ── */
+  .matrix-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .matrix-box {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; line-height: 1.9; color: var(--text);
+  }
+  .matrix-box .hl { color: var(--accent-orange); font-weight: 500; }
+  .matrix-arrow { font-size: 20px; color: var(--text3); }
+
+  /* ── TAG ROW ── */
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .tag {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 12px;
+    font-size: 12px; color: var(--text2);
+  }
+  .tag code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-green); }
+
+  /* ── RETOS BUTTONS ── */
+  .reto-btn {
+    font-size: 13px; padding: 8px 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg3); cursor: pointer; color: var(--text2);
+    font-family: 'Sora', sans-serif;
+    transition: background .15s, color .15s, border-color .15s;
+    margin: 4px;
+  }
+  .reto-btn:hover { background: var(--bg2); color: var(--text); border-color: var(--border2); }
+
+  /* ── SOLUTION BOX ── */
+  .solution-box {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-top: 14px;
+    animation: fadein .2s ease;
+  }
+  .solution-box h4 { font-size: 13px; font-weight: 600; color: var(--accent-green); margin-bottom: 10px; }
+  .solution-box pre {
+    margin: 0; border-radius: 8px; font-size: 12px; padding: 14px;
+    border: 1px solid var(--border); border-top: 1px solid var(--border);
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center; padding: 2rem 0;
+    font-size: 12px; color: var(--text3);
+    border-top: 1px solid var(--border); margin-top: 2rem;
+  }
+  .footer a { color: var(--accent-blue); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-section { margin-bottom: 2rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .progress-track { height: 4px; background: var(--bg3); border-radius: 2px; border: 1px solid var(--border); }
+  .progress-fill  { height: 100%; background: linear-gradient(90deg, #1f6feb, #58a6ff); border-radius: 2px; transition: width .4s ease; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a class="logo" href="#">
+    <span class="logo-icon">📷</span>
+    ML con Webcam
+  </a>
+  <span class="sep">/</span>
+  <span class="breadcrumb"><span>Proyecto 1</span> — OpenCV</span>
+  <div class="spacer"></div>
+  <span class="badge-nav">⭐ Básico</span>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Proyecto 1 — Captura y procesamiento de imagen con OpenCV</h1>
+    <p>Aprende los fundamentos de visión por computadora: captura frames desde tu webcam, entiende cómo Python representa imágenes como matrices numéricas, y aplica filtros clásicos en tiempo real.</p>
+    <div class="badge-row">
+      <span class="badge badge-green">⭐ Básico</span>
+      <span class="badge badge-blue">OpenCV 4.5.4 · apt</span>
+      <span class="badge badge-orange">NumPy 1.26.4</span>
+      <span class="badge badge-purple">Python 3.10</span>
+      <span class="badge badge-green">✅ Retos A–E completados</span>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-section">
+    <div class="progress-label"><span>Progreso del proyecto</span><span id="progressText">0 / 5 pasos</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('conceptos',this)">🧠 Conceptos</button>
+    <button class="tab-btn" onclick="showTab('instalacion',this)">⚙️ Instalación</button>
+    <button class="tab-btn" onclick="showTab('codigo',this)">💻 Código base</button>
+    <button class="tab-btn" onclick="showTab('filtros',this)">🎨 Filtros</button>
+    <button class="tab-btn" onclick="showTab('retos',this)">🚀 Retos</button>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- ═══════════════ CONCEPTOS ═══════════════ -->
+    <div class="panel active" id="panel-conceptos">
+      <p class="section-label">¿Qué aprenderás en este proyecto?</p>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>🖼️ Imagen = Matriz numérica</h4>
+          <p>Una imagen es un arreglo 3D de números: <code>alto × ancho × 3 canales</code>. Cada píxel tiene 3 valores (0–255) para Blue, Green y Red.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🔵 BGR, no RGB</h4>
+          <p>OpenCV usa el orden <code>B-G-R</code> por razones históricas. Si ves colores raros, asumiste RGB. Usa <code>cv2.cvtColor()</code> para convertir.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🎞️ Frame = foto instantánea</h4>
+          <p>Un video es una secuencia de frames. Con <code>cap.read()</code> capturas uno por ciclo del loop infinito <code>while True</code>.</p>
+        </div>
+        <div class="concept-card">
+          <h4>🔢 Filtros = operaciones matemáticas</h4>
+          <p>Cada filtro transforma la matriz de píxeles: suaviza promediando vecinos, detecta bordes calculando gradientes, etc.</p>
+        </div>
+      </div>
+
+      <p class="section-label">Demo interactiva — así se ve un píxel BGR</p>
+      <p class="pixel-hint" style="margin-bottom:8px;text-align:left">Mueve el slider para cambiar la intensidad del canal Rojo 🔴</p>
+      <div class="pixel-demo">
+        <div class="pixel-vis" id="pxGrid"></div>
+        <div class="channel-bars">
+          <div class="ch-row">
+            <span class="ch-label" style="color:#58a6ff">B</span>
+            <div class="ch-bar-wrap"><div class="ch-bar" id="bBar" style="width:55%;background:#3b82f6"></div></div>
+            <span class="ch-val" id="bVal">140</span>
+          </div>
+          <div class="ch-row">
+            <span class="ch-label" style="color:#3fb950">G</span>
+            <div class="ch-bar-wrap"><div class="ch-bar" id="gBar" style="width:38%;background:#22c55e"></div></div>
+            <span class="ch-val" id="gVal">97</span>
+          </div>
+          <div class="ch-row">
+            <span class="ch-label" style="color:#f87171">R</span>
+            <div class="ch-bar-wrap"><div class="ch-bar" id="rBar" style="width:0%;background:#ef4444"></div></div>
+            <span class="ch-val" id="rVal">0</span>
+          </div>
+        </div>
+      </div>
+      <input type="range" class="pixel-slider" min="0" max="255" value="0" id="rSlider" oninput="updatePixel(this.value)">
+      <p class="pixel-hint" id="colorName" style="margin-bottom:20px">Color actual: Azul verdoso — img[y,x] = [140, 97, 0]</p>
+
+      <p class="section-label">Cómo una imagen se representa en memoria</p>
+      <div class="matrix-row">
+        <div class="matrix-box">
+<span style="color:#8b949e"># foto.jpg en disco</span><br>
+altura: <span class="hl">480</span> px<br>
+ancho&nbsp;: <span class="hl">640</span> px<br>
+canales: <span class="hl">3</span> (BGR)
+        </div>
+        <div class="matrix-arrow">→</div>
+        <div class="matrix-box">
+<span style="color:#8b949e"># numpy array</span><br>
+img.shape<br>= (<span class="hl">480</span>, <span class="hl">640</span>, <span class="hl">3</span>)<br>
+img.dtype = uint8
+        </div>
+        <div class="matrix-arrow">→</div>
+        <div class="matrix-box">
+<span style="color:#8b949e"># acceder píxel</span><br>
+img[<span style="color:#ffa657">10</span>, <span style="color:#3fb950">20</span>]<br>= [<span style="color:#58a6ff">140</span>, <span style="color:#22c55e">97</span>, <span style="color:#f87171">0</span>]<br>
+&nbsp;&nbsp; &nbsp;[B&nbsp;, G , R]
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>Nota clave:</strong> En numpy, las imágenes se indexan como <code>img[y, x]</code> — primero fila (eje Y), luego columna (eje X). Al principio confunde porque en matemáticas se escribe (x, y). Recuerda: <strong>primero filas, luego columnas</strong>.
+      </div>
+    </div>
+
+    <!-- ═══════════════ INSTALACIÓN ═══════════════ -->
+    <div class="panel" id="panel-instalacion">
+
+      <p class="section-label">Versiones instaladas en este entorno</p>
+      <div class="concept-grid" style="margin-bottom:20px">
+        <div class="concept-card">
+          <h4>OpenCV 4.5.4</h4>
+          <p>Instalado vía <code>sudo apt install python3-opencv</code>. Compilado con soporte GTK nativo — necesario para <code>cv2.imshow()</code> en Linux Mint.</p>
+        </div>
+        <div class="concept-card">
+          <h4>NumPy 1.26.4</h4>
+          <p>Instalado vía <code>pip install --user "numpy&lt;2"</code>. Downgrade necesario: el OpenCV de apt fue compilado con NumPy 1.x y es incompatible con NumPy 2.x.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Python 3.10.x</h4>
+          <p>Versión del sistema en Linux Mint. Sin virtual environment — se usa <code>--user</code> para instalar paquetes pip sin permisos de root.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Verificar entorno</h4>
+          <p>Comando para confirmar que todo está correcto antes de ejecutar cualquier proyecto.</p>
+        </div>
+      </div>
+      <div class="code-header"><span class="filename">terminal</span><span class="lang-tag">bash</span></div>
+      <pre>python3 -c "import cv2; import numpy as np; print('OpenCV:', cv2.__version__, '| NumPy:', np.__version__)"
+<span class="cm"># Salida esperada: OpenCV: 4.5.4 | NumPy: 1.26.4</span></pre>
+
+      <p class="section-label" style="margin-top:20px">Comandos de instalación (referencia)</p>
+      <div class="code-header"><span class="filename">terminal</span><span class="lang-tag">bash</span></div>
+      <pre><span class="cm"># 1. OpenCV con soporte GTK (NO usar pip para opencv en Linux Mint)</span>
+sudo apt install python3-opencv
+
+<span class="cm"># 2. NumPy compatible — mantener siempre &lt; 2.0 con este entorno</span>
+pip install --user "numpy&lt;2"
+
+<span class="cm"># 3. Verificar cámara</span>
+python3 -c "import cv2; cap=cv2.VideoCapture(0); print('Cámara:', cap.isOpened()); cap.release()"</pre>
+
+      <p class="section-label" style="margin-top:20px">⚠️ Lecciones aprendidas — errores reales encontrados</p>
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">Síntoma</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">Causa</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">Solución</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace;font-size:11px">QFontDatabase: Cannot find font directory</td>
+              <td style="padding:8px 10px;color:var(--text2)"><code>opencv-python</code> de pip trae Qt sin fuentes</td>
+              <td style="padding:8px 10px;color:var(--accent-green)">Usar <code>python3-opencv</code> de apt</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace;font-size:11px">The function is not implemented</td>
+              <td style="padding:8px 10px;color:var(--text2)"><code>opencv-python-headless</code> no tiene GUI</td>
+              <td style="padding:8px 10px;color:var(--accent-green)">No usar headless si se necesita ventana</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace;font-size:11px">_ARRAY_API not found</td>
+              <td style="padding:8px 10px;color:var(--text2)">NumPy 2.x incompatible con opencv de apt</td>
+              <td style="padding:8px 10px;color:var(--accent-green)"><code>pip install --user "numpy&lt;2"</code></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 10px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px">GStreamer: Cannot query video position</td>
+              <td style="padding:8px 10px;color:var(--text2)">Warning normal con webcams USB</td>
+              <td style="padding:8px 10px;color:var(--text2)">Ignorar — no afecta funcionamiento</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="section-label">🔢 Teclado numérico (numpad) en Linux + OpenCV</p>
+      <div class="info-box">
+        <strong>Problema:</strong> las teclas del numpad no cambiaban el filtro aunque las teclas superiores sí funcionaban.<br><br>
+        <strong>Causa:</strong> con backend GTK en Linux, el numpad envía códigos distintos. El offset es <code>176 + dígito</code> (no el código ASCII estándar).<br><br>
+        <strong>Solución aplicada:</strong> usar <code>in (ord('N'), 176+N)</code> para aceptar ambos teclados simultáneamente.
+      </div>
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:center;padding:7px 10px;color:var(--text3);font-weight:600">Tecla superior</th>
+              <th style="text-align:center;padding:7px 10px;color:var(--text3);font-weight:600">Código</th>
+              <th style="text-align:center;padding:7px 10px;color:var(--text3);font-weight:600">Numpad</th>
+              <th style="text-align:center;padding:7px 10px;color:var(--text3);font-weight:600">Código</th>
+              <th style="text-align:left;padding:7px 10px;color:var(--text3);font-weight:600">Filtro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)"><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">1</td><td style="text-align:center;padding:7px 10px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace">49</td><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">Numpad 1</td><td style="text-align:center;padding:7px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace">177</td><td style="padding:7px 10px;color:var(--text2)">Original</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">2</td><td style="text-align:center;padding:7px 10px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace">50</td><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">Numpad 2</td><td style="text-align:center;padding:7px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace">178</td><td style="padding:7px 10px;color:var(--text2)">Grises</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">3</td><td style="text-align:center;padding:7px 10px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace">51</td><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">Numpad 3</td><td style="text-align:center;padding:7px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace">179</td><td style="padding:7px 10px;color:var(--text2)">Blur</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">4</td><td style="text-align:center;padding:7px 10px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace">52</td><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">Numpad 4</td><td style="text-align:center;padding:7px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace">180</td><td style="padding:7px 10px;color:var(--text2)">Bordes</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">5</td><td style="text-align:center;padding:7px 10px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace">53</td><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">Numpad 5</td><td style="text-align:center;padding:7px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace">181</td><td style="padding:7px 10px;color:var(--text2)">Sepia</td></tr>
+            <tr><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">6</td><td style="text-align:center;padding:7px 10px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace">54</td><td style="text-align:center;padding:7px 10px;font-family:'JetBrains Mono',monospace;color:var(--text)">Numpad 6</td><td style="text-align:center;padding:7px 10px;color:var(--accent-orange);font-family:'JetBrains Mono',monospace">182</td><td style="padding:7px 10px;color:var(--text2)">Invertido</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-header"><span class="filename">snippet de diagnóstico — detectar código de cualquier tecla</span><span class="lang-tag">python</span></div>
+      <pre><span class="kw">import</span> <span class="fn">cv2</span>, numpy <span class="kw">as</span> np
+img <span class="op">=</span> np.<span class="fn">zeros</span>((<span class="nu">200</span>, <span class="nu">400</span>, <span class="nu">3</span>), dtype<span class="op">=</span>np.<span class="fn">uint8</span>)
+cv2.<span class="fn">imshow</span>(<span class="st">"test - presiona teclas"</span>, img)
+<span class="kw">while True</span>:
+    tecla <span class="op">=</span> cv2.<span class="fn">waitKey</span>(<span class="nu">0</span>)
+    <span class="kw">print</span>(<span class="fn">f</span><span class="st">"raw: {tecla}  |  & 0xFF: {tecla & 0xFF}"</span>)
+    <span class="kw">if</span> tecla <span class="op">&</span> <span class="nu">0xFF</span> <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'q'</span>): <span class="kw">break</span>
+cv2.<span class="fn">destroyAllWindows</span>()</pre>
+
+      <div class="warn-box">
+        <strong>⚠️ Regla general:</strong> no mezclar <code>apt</code> y <code>pip</code> para el mismo ecosistema. En este proyecto fue necesario porque <code>python3-opencv</code> de apt es la única versión con GTK sin recompilar. La consecuencia es que NumPy debe mantenerse siempre en <code>&lt; 2.0</code> en este entorno.
+      </div>
+    </div>
+
+    <!-- ═══════════════ CÓDIGO BASE ═══════════════ -->
+    <div class="panel" id="panel-codigo">
+      <p class="section-label">Archivo principal</p>
+      <div class="info-box">
+        <strong>Estructura:</strong> Todo el proyecto vive en un solo archivo. Lee el código de arriba hacia abajo — primero la cámara, luego el loop principal, luego los filtros. Cada sección está numerada con comentarios.
+      </div>
+      <button class="copy-btn" id="copyMainBtn" onclick="copyMain()">📋 Copiar código</button>
+      <div class="code-header">
+        <span class="filename">proyecto1_webcam.py</span>
+        <span class="lang-tag">python</span>
+      </div>
+<pre id="mainCodeBlock"><span class="kw">import</span> <span class="fn">cv2</span>
+<span class="kw">import</span> <span class="fn">numpy</span> <span class="kw">as</span> np
+
+<span class="cm"># ── 1. Abrir cámara (índice 0 = primera cámara USB) ──────────────</span>
+cap <span class="op">=</span> cv2.<span class="fn">VideoCapture</span>(<span class="nu">0</span>)
+
+<span class="kw">if not</span> cap.<span class="fn">isOpened</span>():
+    <span class="kw">print</span>(<span class="st">"Error: no se pudo abrir la cámara"</span>)
+    <span class="fn">exit</span>()
+
+<span class="cm"># ── 2. Selector de filtro activo ──────────────────────────────────</span>
+filtro_activo <span class="op">=</span> <span class="st">"original"</span>
+
+<span class="cm"># ── 3. Loop principal ─────────────────────────────────────────────</span>
+<span class="kw">while True</span>:
+    <span class="cm"># Leer un frame de la cámara</span>
+    ret, frame <span class="op">=</span> cap.<span class="fn">read</span>()
+    <span class="kw">if not</span> ret:
+        <span class="kw">print</span>(<span class="st">"Error al leer frame"</span>)
+        <span class="kw">break</span>
+
+    <span class="cm"># ── 4. Aplicar filtro según selección ─────────────────────────</span>
+    <span class="kw">if</span> filtro_activo <span class="op">==</span> <span class="st">"gris"</span>:
+        resultado <span class="op">=</span> cv2.<span class="fn">cvtColor</span>(frame, cv2.<span class="fn">COLOR_BGR2GRAY</span>)
+
+    <span class="kw">elif</span> filtro_activo <span class="op">==</span> <span class="st">"blur"</span>:
+        resultado <span class="op">=</span> cv2.<span class="fn">GaussianBlur</span>(frame, (<span class="nu">15</span>, <span class="nu">15</span>), <span class="nu">0</span>)
+
+    <span class="kw">elif</span> filtro_activo <span class="op">==</span> <span class="st">"bordes"</span>:
+        gris <span class="op">=</span> cv2.<span class="fn">cvtColor</span>(frame, cv2.<span class="fn">COLOR_BGR2GRAY</span>)
+        resultado <span class="op">=</span> cv2.<span class="fn">Canny</span>(gris, <span class="nu">100</span>, <span class="nu">200</span>)
+
+    <span class="kw">elif</span> filtro_activo <span class="op">==</span> <span class="st">"sepia"</span>:
+        kernel <span class="op">=</span> np.<span class="fn">array</span>([[<span class="nu">0.272</span>, <span class="nu">0.534</span>, <span class="nu">0.131</span>],
+                             [<span class="nu">0.349</span>, <span class="nu">0.686</span>, <span class="nu">0.168</span>],
+                             [<span class="nu">0.393</span>, <span class="nu">0.769</span>, <span class="nu">0.189</span>]])
+        resultado <span class="op">=</span> cv2.<span class="fn">transform</span>(frame, kernel)
+        resultado <span class="op">=</span> np.<span class="fn">clip</span>(resultado, <span class="nu">0</span>, <span class="nu">255</span>).<span class="fn">astype</span>(np.<span class="fn">uint8</span>)
+
+    <span class="kw">elif</span> filtro_activo <span class="op">==</span> <span class="st">"invertido"</span>:
+        resultado <span class="op">=</span> cv2.<span class="fn">bitwise_not</span>(frame)
+
+    <span class="kw">else</span>:  <span class="cm"># "original"</span>
+        resultado <span class="op">=</span> frame
+
+    <span class="cm"># ── 5. Mostrar información en pantalla ────────────────────────</span>
+    cv2.<span class="fn">putText</span>(
+        resultado,
+        <span class="fn">f</span><span class="st">"Filtro: {filtro_activo}  |  1-6 cambiar  |  Q salir"</span>,
+        (<span class="nu">10</span>, <span class="nu">30</span>),
+        cv2.<span class="fn">FONT_HERSHEY_SIMPLEX</span>,
+        <span class="nu">0.6</span>,
+        (<span class="nu">255</span>, <span class="nu">255</span>, <span class="nu">0</span>),
+        <span class="nu">2</span>
+    )
+
+    <span class="cm"># ── 6. Mostrar ventana ────────────────────────────────────────</span>
+    cv2.<span class="fn">imshow</span>(<span class="st">"Proyecto 1 - Webcam"</span>, resultado)
+
+    <span class="cm"># ── 7. Capturar teclado ───────────────────────────────────────</span>
+    tecla <span class="op">=</span> cv2.<span class="fn">waitKey</span>(<span class="nu">1</span>) <span class="op">&</span> <span class="nu">0xFF</span>
+
+    <span class="kw">if</span>   tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'q'</span>): <span class="kw">break</span>
+    <span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'1'</span>): filtro_activo <span class="op">=</span> <span class="st">"original"</span>
+    <span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'2'</span>): filtro_activo <span class="op">=</span> <span class="st">"gris"</span>
+    <span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'3'</span>): filtro_activo <span class="op">=</span> <span class="st">"blur"</span>
+    <span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'4'</span>): filtro_activo <span class="op">=</span> <span class="st">"bordes"</span>
+    <span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'5'</span>): filtro_activo <span class="op">=</span> <span class="st">"sepia"</span>
+    <span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">'6'</span>): filtro_activo <span class="op">=</span> <span class="st">"invertido"</span>
+
+<span class="cm"># ── 8. Liberar recursos ───────────────────────────────────────────</span>
+cap.<span class="fn">release</span>()
+cv2.<span class="fn">destroyAllWindows</span>()</pre>
+
+      <div class="tag-row">
+        <span class="tag">▶ Ejecutar: <code>python3 proyecto1_webcam.py</code></span>
+        <span class="tag">⏹ Salir: tecla <code>Q</code></span>
+        <span class="tag">🎨 Cambiar filtro: teclas <code>1</code>–<code>6</code></span>
+      </div>
+
+      <p class="section-label" style="margin-top:20px">¿Qué hace cada sección clave?</p>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>cap.read() → (ret, frame)</h4>
+          <p>Retorna dos valores: <code>ret</code> es True si leyó bien, <code>frame</code> es el numpy array de la imagen. Si <code>ret</code> es False, la cámara se desconectó.</p>
+        </div>
+        <div class="concept-card">
+          <h4>cv2.waitKey(1) & 0xFF</h4>
+          <p>Espera 1ms por una tecla. El <code>& 0xFF</code> garantiza compatibilidad en sistemas de 64 bits aislando el byte bajo del código de tecla.</p>
+        </div>
+        <div class="concept-card">
+          <h4>cap.release()</h4>
+          <p>Libera el hardware de la cámara. Sin esto, el dispositivo queda bloqueado y no podrás usarlo en otra aplicación hasta reiniciar.</p>
+        </div>
+        <div class="concept-card">
+          <h4>cv2.destroyAllWindows()</h4>
+          <p>Cierra todas las ventanas de OpenCV. Importante llamarlo al final o las ventanas pueden quedar "fantasma" en tu escritorio.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ FILTROS ═══════════════ -->
+    <div class="panel" id="panel-filtros">
+      <p class="section-label">Selecciona un filtro para ver cómo funciona internamente</p>
+      <div class="filter-grid">
+        <div class="filter-card selected" id="fc0" onclick="selectFilter(0)">
+          <div class="filter-name">1 — Original</div>
+          <div class="filter-fn">frame (sin modificar)</div>
+          <div class="filter-desc">Frames crudos tal como vienen de la cámara. Referencia base.</div>
+        </div>
+        <div class="filter-card" id="fc1" onclick="selectFilter(1)">
+          <div class="filter-name">2 — Escala de grises</div>
+          <div class="filter-fn">cv2.cvtColor(frame, COLOR_BGR2GRAY)</div>
+          <div class="filter-desc">Combina 3 canales en 1 usando pesos perceptuales del ojo humano.</div>
+        </div>
+        <div class="filter-card" id="fc2" onclick="selectFilter(2)">
+          <div class="filter-name">3 — Desenfoque Gaussiano</div>
+          <div class="filter-fn">cv2.GaussianBlur(frame, (15,15), 0)</div>
+          <div class="filter-desc">Promedia cada píxel con sus vecinos usando distribución gaussiana.</div>
+        </div>
+        <div class="filter-card" id="fc3" onclick="selectFilter(3)">
+          <div class="filter-name">4 — Detección de bordes (Canny)</div>
+          <div class="filter-fn">cv2.Canny(gris, 100, 200)</div>
+          <div class="filter-desc">Detecta cambios bruscos de intensidad. Algoritmo de 4 pasos.</div>
+        </div>
+        <div class="filter-card" id="fc4" onclick="selectFilter(4)">
+          <div class="filter-name">5 — Filtro Sepia</div>
+          <div class="filter-fn">cv2.transform(frame, kernel_3x3)</div>
+          <div class="filter-desc">Multiplicación matricial que mezcla canales para tono vintage.</div>
+        </div>
+        <div class="filter-card" id="fc5" onclick="selectFilter(5)">
+          <div class="filter-name">6 — Invertido (negativo)</div>
+          <div class="filter-fn">cv2.bitwise_not(frame)</div>
+          <div class="filter-desc">Resta cada valor de 255: oscuro↔claro, colores complementarios.</div>
+        </div>
+      </div>
+      <div id="filterDetail"></div>
+    </div>
+
+    <!-- ═══════════════ RETOS ═══════════════ -->
+    <div class="panel" id="panel-retos">
+      <p class="section-label">Retos prácticos — ✅ todos completados</p>
+      <div class="success-box" style="margin-bottom:18px">
+        <strong>✅ Retos A, B, C, D y E completados.</strong> Cada reto fue commiteado de forma atómica en el repositorio. Ver historial con <code>git log --oneline</code>.
+      </div>
+
+      <div class="step">
+        <div class="step-num letter">A</div>
+        <div class="step-content">
+          <h4>Guardar captura con tecla "S"</h4>
+          <p>Agrega un <code>elif tecla == ord('s')</code> que llame a <code>cv2.imwrite('captura.png', resultado)</code>. Guarda el frame actual como imagen PNG en el directorio actual.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num letter">B</div>
+        <div class="step-content">
+          <h4>Mostrar dimensiones del frame en pantalla</h4>
+          <p>Usa <code>frame.shape</code> para obtener <code>(alto, ancho, canales)</code> y muéstralo con un segundo <code>cv2.putText()</code> en la esquina inferior izquierda.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num letter">C</div>
+        <div class="step-content">
+          <h4>Mostrar la imagen en espejo</h4>
+          <p>Agrega <code>frame = cv2.flip(frame, 1)</code> justo después de <code>cap.read()</code>. El parámetro <code>1</code> = volteo horizontal. Cambia a <code>0</code> para volteo vertical.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num letter">D</div>
+        <div class="step-content">
+          <h4>Dibujar un rectángulo centrado</h4>
+          <p>Usa <code>cv2.rectangle(resultado, pt1, pt2, (0,255,0), 2)</code>. Calcula el centro con <code>frame.shape[1]//2</code> (ancho) y <code>frame.shape[0]//2</code> (alto). El rectángulo debería moverse si el frame cambia de resolución.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num letter">E</div>
+        <div class="step-content">
+          <h4>Filtro "pixelado" (más difícil)</h4>
+          <p>Reduce la imagen con <code>cv2.resize(frame, (64, 48))</code> y luego vuelve al tamaño original con <code>cv2.resize(..., (ancho, alto), interpolation=cv2.INTER_NEAREST)</code>. Resultado: efecto 8-bit retro.</p>
+        </div>
+      </div>
+
+      <div class="warn-box">
+        <strong>💡 Consejo:</strong> Intenta cada reto sin ver la solución primero. El proceso de búsqueda es donde más se aprende. Cuando te traben, usa los botones de abajo para ver la solución con explicación.
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+        <button class="reto-btn" onclick="toggleSolution('A')">Reto A — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('B')">Reto B — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('C')">Reto C — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('D')">Reto D — ver solución</button>
+        <button class="reto-btn" onclick="toggleSolution('E')">Reto E — ver solución</button>
+      </div>
+
+      <div id="solutionBox" style="display:none"></div>
+    </div>
+
+  </div><!-- /tab-content -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>Proyecto 1 de 15 — Serie ML con Webcam y Micrófono</p>
+    <p style="margin-top:6px">Siguiente: <strong>Proyecto 2 — Detector de movimiento</strong> &nbsp;·&nbsp; Docs: <a href="https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html" target="_blank">opencv.org</a></p>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ── TABS ──────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  updateProgress(name);
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────
+var visited = new Set(['conceptos']);
+function updateProgress(tab) {
+  visited.add(tab);
+  var steps = ['conceptos','instalacion','codigo','filtros','retos'];
+  var count = steps.filter(s => visited.has(s)).length;
+  document.getElementById('progressText').textContent = count + ' / 5 pasos';
+  document.getElementById('progressFill').style.width = (count/5*100) + '%';
+}
+
+// ── PIXEL DEMO ────────────────────────────────────────────────────
+var grid = document.getElementById('pxGrid');
+for (var i = 0; i < 25; i++) {
+  var d = document.createElement('div');
+  d.style.background = 'rgb(0,97,140)';
+  grid.appendChild(d);
+}
+function updatePixel(r) {
+  r = parseInt(r);
+  var b = 140, g = 97;
+  document.getElementById('rBar').style.width = (r/255*100) + '%';
+  document.getElementById('rVal').textContent = r;
+  var col = 'rgb('+r+','+g+','+b+')';
+  document.querySelectorAll('#pxGrid div').forEach(c => c.style.background = col);
+  var name = r < 30 ? 'Azul verdoso' : r < 80 ? 'Verde azulado' : r < 140 ? 'Verde grisáceo' : r < 180 ? 'Verde amarillento' : r < 220 ? 'Rosado suave' : 'Rosa intenso';
+  document.getElementById('colorName').textContent = 'Color actual: ' + name + ' — img[y,x] = ['+b+', '+g+', '+r+']';
+}
+
+// ── FILTER DETAIL ─────────────────────────────────────────────────
+var filterData = [
+  {
+    name: 'Original',
+    math: 'resultado = frame',
+    detail: 'No hay transformación matemática. El frame se muestra tal cual viene del sensor. Útil como referencia y para debug.',
+    extra: '<code>frame.shape</code> devuelve <code>(alto, ancho, 3)</code>. Cada píxel es <code>[B, G, R]</code>. El dtype es <code>uint8</code> (enteros 0–255).',
+    code: '<span class="cm"># Sin cambios</span>\nresultado = frame'
+  },
+  {
+    name: 'Escala de grises',
+    math: 'L = 0.114·B + 0.587·G + 0.299·R',
+    detail: 'OpenCV usa pesos diferentes por canal porque el ojo humano percibe más el verde (~59%), menos el rojo (~30%) y muy poco el azul (~11%). El resultado es una imagen de 1 solo canal.',
+    extra: '<strong>Truco importante:</strong> si intentas <code>cv2.putText()</code> sobre una imagen gris sin reconvertirla, obtienes un error porque espera 3 canales. Usa <code>cv2.cvtColor(gris, COLOR_GRAY2BGR)</code> primero.',
+    code: 'resultado = cv2.<span class="fn">cvtColor</span>(frame, cv2.<span class="fn">COLOR_BGR2GRAY</span>)'
+  },
+  {
+    name: 'Desenfoque Gaussiano',
+    math: 'G(x,y) = (1/2πσ²) · exp(-(x²+y²) / 2σ²)',
+    detail: 'Cada píxel se reemplaza por el promedio ponderado de sus vecinos. El kernel (15,15) define cuántos vecinos considerar. Más grande el kernel = más borroso. Se usa en casi todos los pipelines de visión como paso de preprocesamiento.',
+    extra: 'El último parámetro <code>0</code> le dice a OpenCV que calcule σ (desviación estándar) automáticamente según el tamaño del kernel. Puedes probarlo con <code>(5,5)</code>, <code>(21,21)</code> y ver la diferencia.',
+    code: 'resultado = cv2.<span class="fn">GaussianBlur</span>(frame, (<span class="nu">15</span>, <span class="nu">15</span>), <span class="nu">0</span>)'
+  },
+  {
+    name: 'Detección de bordes (Canny)',
+    math: 'Gradiente: G = √(Gx² + Gy²), ángulo: θ = arctan(Gy/Gx)',
+    detail: 'Algoritmo de 4 pasos: (1) suaviza con Gaussian para reducir ruido, (2) calcula gradiente con Sobel, (3) suprime no-máximos (adelgaza bordes), (4) aplica umbral doble: píxeles > 200 son bordes seguros, < 100 se descartan, entre ambos se conservan si tocan un borde seguro.',
+    extra: '<strong>Los dos números (100, 200) son los umbrales.</strong> Para bordes más sutiles baja el primer umbral. Para bordes más limpios sube el segundo. Experimenta con <code>(50, 150)</code> o <code>(30, 100)</code>.',
+    code: 'gris = cv2.<span class="fn">cvtColor</span>(frame, cv2.<span class="fn">COLOR_BGR2GRAY</span>)\nresultado = cv2.<span class="fn">Canny</span>(gris, <span class="nu">100</span>, <span class="nu">200</span>)'
+  },
+  {
+    name: 'Filtro Sepia',
+    math: '[R\', G\', B\'] = M₃ₓ₃ · [R, G, B]',
+    detail: 'Multiplicación matricial: cada canal nuevo es una combinación lineal de los 3 canales originales. La matriz 3×3 fue diseñada para imitar el tono café cálido del revelado fotográfico de principios del siglo XX.',
+    extra: '<strong><code>np.clip(resultado, 0, 255)</code> es esencial</strong> — la multiplicación puede producir valores > 255 o < 0, que numpy truncaría de forma incorrecta al convertir a <code>uint8</code>. Siempre clipea antes de astype.',
+    code: 'kernel = np.<span class="fn">array</span>([[<span class="nu">0.272</span>, <span class="nu">0.534</span>, <span class="nu">0.131</span>],\n              [<span class="nu">0.349</span>, <span class="nu">0.686</span>, <span class="nu">0.168</span>],\n              [<span class="nu">0.393</span>, <span class="nu">0.769</span>, <span class="nu">0.189</span>]])\nresultado = cv2.<span class="fn">transform</span>(frame, kernel)\nresultado = np.<span class="fn">clip</span>(resultado, <span class="nu">0</span>, <span class="nu">255</span>).<span class="fn">astype</span>(np.<span class="fn">uint8</span>)'
+  },
+  {
+    name: 'Invertido (negativo)',
+    math: 'resultado[y,x] = 255 − frame[y,x]',
+    detail: 'La operación más simple: resta cada valor de píxel de 255. Negro (0) se vuelve blanco (255) y viceversa. Los colores se convierten en sus complementarios en el círculo cromático.',
+    extra: 'También puedes lograrlo con numpy puro: <code>resultado = 255 - frame</code>. Ambas formas producen el mismo resultado. <code>bitwise_not</code> es levemente más rápido por trabajar a nivel de bits.',
+    code: 'resultado = cv2.<span class="fn">bitwise_not</span>(frame)\n<span class="cm"># equivalente numpy:</span>\n<span class="cm"># resultado = 255 - frame</span>'
+  }
+];
+
+function selectFilter(i) {
+  document.querySelectorAll('.filter-card').forEach((c,j) => c.classList.toggle('selected', j===i));
+  var f = filterData[i];
+  document.getElementById('filterDetail').innerHTML =
+    '<div class="info-box" style="margin-top:8px">' +
+    '<strong>Matemática:</strong> <code style="font-family:JetBrains Mono,monospace;font-size:12px">' + f.math + '</code>' +
+    '<br><br>' + f.detail +
+    '<br><br><strong style="color:var(--accent-green)">Dato extra:</strong> ' + f.extra +
+    '</div>' +
+    '<div class="code-header"><span class="filename">fragmento</span><span class="lang-tag">python</span></div>' +
+    '<pre style="margin-bottom:0">' + f.code + '</pre>';
+}
+selectFilter(0);
+
+// ── SOLUTIONS ─────────────────────────────────────────────────────
+var solutions = {
+  'A': {
+    title: 'Reto A — Guardar captura con tecla S',
+    code: '<span class="cm"># Agregar dentro del bloque de teclas (después de los elif existentes)</span>\n<span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">\'s\'</span>):\n    cv2.<span class="fn">imwrite</span>(<span class="st">\'captura.png\'</span>, resultado)\n    <span class="kw">print</span>(<span class="st">"Captura guardada como captura.png"</span>)\n\n<span class="cm"># Para guardar con nombre único (timestamp):</span>\n<span class="kw">from</span> <span class="fn">datetime</span> <span class="kw">import</span> datetime\n<span class="kw">elif</span> tecla <span class="op">==</span> <span class="fn">ord</span>(<span class="st">\'s\'</span>):\n    nombre <span class="op">=</span> <span class="fn">f</span><span class="st">"captura_{datetime.now():%Y%m%d_%H%M%S}.png"</span>\n    cv2.<span class="fn">imwrite</span>(nombre, resultado)\n    <span class="kw">print</span>(<span class="fn">f</span><span class="st">"Guardada: {nombre}"</span>)'
+  },
+  'B': {
+    title: 'Reto B — Mostrar dimensiones del frame',
+    code: '<span class="cm"># Agregar después del primer cv2.putText() en el loop</span>\nalto, ancho, canales <span class="op">=</span> frame.shape\ninfo_text <span class="op">=</span> <span class="fn">f</span><span class="st">"Tamaño: {ancho}x{alto} | Canales: {canales}"</span>\n\ncv2.<span class="fn">putText</span>(\n    resultado, info_text,\n    (<span class="nu">10</span>, alto <span class="op">-</span> <span class="nu">15</span>),  <span class="cm"># esquina inferior izquierda</span>\n    cv2.<span class="fn">FONT_HERSHEY_SIMPLEX</span>,\n    <span class="nu">0.5</span>, (<span class="nu">200</span>, <span class="nu">200</span>, <span class="nu">200</span>), <span class="nu">1</span>\n)'
+  },
+  'C': {
+    title: 'Reto C — Imagen en espejo',
+    code: '<span class="cm"># Agregar DESPUÉS de cap.read(), ANTES de aplicar filtros</span>\nret, frame <span class="op">=</span> cap.<span class="fn">read</span>()\n<span class="kw">if not</span> ret: <span class="kw">break</span>\n\nframe <span class="op">=</span> cv2.<span class="fn">flip</span>(frame, <span class="nu">1</span>)  <span class="cm"># 1 = horizontal (espejo)</span>\n                              <span class="cm"># 0 = vertical</span>\n                              <span class="cm"># -1 = ambos ejes</span>\n\n<span class="cm"># A partir de aquí, todos los filtros reciben el frame en espejo</span>'
+  },
+  'D': {
+    title: 'Reto D — Rectángulo centrado',
+    code: '<span class="cm"># Agregar después de aplicar el filtro, antes de putText</span>\nalto, ancho <span class="op">=</span> resultado.shape[:<span class="nu">2</span>]\nmargen <span class="op">=</span> <span class="nu">80</span>  <span class="cm"># píxeles desde el centro</span>\n\ncv2.<span class="fn">rectangle</span>(\n    resultado,\n    (ancho<span class="op">//</span><span class="nu">2</span> <span class="op">-</span> margen, alto<span class="op">//</span><span class="nu">2</span> <span class="op">-</span> margen),  <span class="cm"># esquina superior izq.</span>\n    (ancho<span class="op">//</span><span class="nu">2</span> <span class="op">+</span> margen, alto<span class="op">//</span><span class="nu">2</span> <span class="op">+</span> margen),  <span class="cm"># esquina inferior der.</span>\n    (<span class="nu">0</span>, <span class="nu">255</span>, <span class="nu">0</span>),  <span class="cm"># color verde (BGR)</span>\n    <span class="nu">2</span>              <span class="cm"># grosor del borde</span>\n)'
+  },
+  'E': {
+    title: 'Reto E — Filtro pixelado (efecto 8-bit)',
+    code: '<span class="cm"># Agregar como nuevo elif en el bloque de filtros:</span>\n<span class="kw">elif</span> filtro_activo <span class="op">==</span> <span class="st">"pixelado"</span>:\n    alto, ancho <span class="op">=</span> frame.shape[:<span class="nu">2</span>]\n    factor <span class="op">=</span> <span class="nu">12</span>  <span class="cm"># tamaño de cada "pixel" (mayor = más cuadrados)</span>\n\n    <span class="cm"># 1. Reducir a tamaño pequeño</span>\n    pequeño <span class="op">=</span> cv2.<span class="fn">resize</span>(frame,\n        (ancho <span class="op">//</span> factor, alto <span class="op">//</span> factor),\n        interpolation<span class="op">=</span>cv2.<span class="fn">INTER_LINEAR</span>)\n\n    <span class="cm"># 2. Escalar de vuelta al tamaño original</span>\n    resultado <span class="op">=</span> cv2.<span class="fn">resize</span>(pequeño,\n        (ancho, alto),\n        interpolation<span class="op">=</span>cv2.<span class="fn">INTER_NEAREST</span>)  <span class="cm"># clave: sin interpolación</span>\n\n<span class="cm"># No olvides agregar \'7\': filtro_activo = "pixelado" en el bloque de teclas</span>'
+  }
+};
+
+var currentSolution = null;
+function toggleSolution(letter) {
+  var box = document.getElementById('solutionBox');
+  if (currentSolution === letter && box.style.display !== 'none') {
+    box.style.display = 'none';
+    currentSolution = null;
+    return;
+  }
+  currentSolution = letter;
+  var s = solutions[letter];
+  box.innerHTML =
+    '<div class="solution-box">' +
+    '<h4>✅ Solución: ' + s.title + '</h4>' +
+    '<div class="code-header"><span class="filename">fragmento a agregar</span><span class="lang-tag">python</span></div>' +
+    '<pre>' + s.code + '</pre>' +
+    '</div>';
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── COPY CODE ─────────────────────────────────────────────────────
+function copyMain() {
+  var rawCode = `import cv2
+import numpy as np
+
+# ── 1. Abrir cámara (índice 0 = primera cámara USB) ──────────────
+cap = cv2.VideoCapture(0)
+
+if not cap.isOpened():
+    print("Error: no se pudo abrir la cámara")
+    exit()
+
+# ── 2. Selector de filtro activo ──────────────────────────────────
+filtro_activo = "original"
+
+# ── 3. Loop principal ─────────────────────────────────────────────
+while True:
+    # Leer un frame de la cámara
+    ret, frame = cap.read()
+    if not ret:
+        print("Error al leer frame")
+        break
+
+    # ── 4. Aplicar filtro según selección ─────────────────────────
+    if filtro_activo == "gris":
+        resultado = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    elif filtro_activo == "blur":
+        resultado = cv2.GaussianBlur(frame, (15, 15), 0)
+
+    elif filtro_activo == "bordes":
+        gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        resultado = cv2.Canny(gris, 100, 200)
+
+    elif filtro_activo == "sepia":
+        kernel = np.array([[0.272, 0.534, 0.131],
+                           [0.349, 0.686, 0.168],
+                           [0.393, 0.769, 0.189]])
+        resultado = cv2.transform(frame, kernel)
+        resultado = np.clip(resultado, 0, 255).astype(np.uint8)
+
+    elif filtro_activo == "invertido":
+        resultado = cv2.bitwise_not(frame)
+
+    else:  # "original"
+        resultado = frame
+
+    # ── 5. Mostrar información en pantalla ────────────────────────
+    cv2.putText(
+        resultado,
+        f"Filtro: {filtro_activo}  |  1-6 cambiar  |  Q salir",
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        (255, 255, 0),
+        2
+    )
+
+    # ── 6. Mostrar ventana ────────────────────────────────────────
+    cv2.imshow("Proyecto 1 - Webcam", resultado)
+
+    # ── 7. Capturar teclado ───────────────────────────────────────
+    tecla = cv2.waitKey(1) & 0xFF
+
+    if   tecla == ord('q'): break
+    elif tecla == ord('1'): filtro_activo = "original"
+    elif tecla == ord('2'): filtro_activo = "gris"
+    elif tecla == ord('3'): filtro_activo = "blur"
+    elif tecla == ord('4'): filtro_activo = "bordes"
+    elif tecla == ord('5'): filtro_activo = "sepia"
+    elif tecla == ord('6'): filtro_activo = "invertido"
+
+# ── 8. Liberar recursos ───────────────────────────────────────────
+cap.release()
+cv2.destroyAllWindows()
+`;
+  navigator.clipboard.writeText(rawCode).then(() => {
+    var btn = document.getElementById('copyMainBtn');
+    btn.textContent = '✅ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copiar código'; btn.classList.remove('copied'); }, 2500);
+  }).catch(() => {
+    alert('No se pudo copiar automáticamente. Selecciona el código manualmente (Ctrl+A en el bloque).');
+  });
+}
+</script>
+</body>
+</html>

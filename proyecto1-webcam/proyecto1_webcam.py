@@ -22,6 +22,9 @@ while True:
         print("Error al leer frame")
         break
 
+    # Reto C: Mostrar la imagen en espejo
+    frame = cv2.flip(frame, 1)  # 1 = horizontal (espejo), 0 = vertical, -1 = ambos ejes
+
     # ── 4. Aplicar filtro según selección ─────────────────────────
     if filtro_activo == "gris":
         resultado = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
